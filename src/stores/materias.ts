@@ -17,8 +17,8 @@ export interface Comision {
   subject_id: number
   semester: string | null
   weekday: number
-  start_time: string
-  end_time: string
+  start_time: string | null
+  end_time: string | null
   rooms: string[]
   campus: string | null
   campus_id: number | null

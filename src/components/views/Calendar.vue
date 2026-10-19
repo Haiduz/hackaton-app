@@ -41,6 +41,7 @@ onUnmounted(() => window.clearInterval(temporizador))
 const eventos = computed<EventoCalendario[]>(() =>
   store.seleccionadas.flatMap((m, i) =>
     (store.overviews[m.id]?.sessions ?? [])
+      .filter(c => c.start_time && c.end_time && c.weekday)
       .map(c => ({
         id: c.id,
         materiaId: m.id,

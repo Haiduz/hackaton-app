@@ -17,7 +17,7 @@ export function nombreDia(weekday: number): string {
 
 export function ordenarComisiones(comisiones: Comision[]): Comision[] {
   return [...comisiones].sort(
-    (a, b) => a.weekday - b.weekday || a.start_time.localeCompare(b.start_time),
+    (a, b) => a.weekday - b.weekday || (a.start_time ?? '').localeCompare(b.start_time ?? ''),
   )
 }
 

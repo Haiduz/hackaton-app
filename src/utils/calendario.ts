@@ -24,7 +24,8 @@ export interface Conflicto {
   b: EventoCalendario
 }
 
-export function aMinutos(hora: string): number {
+export function aMinutos(hora: string | null | undefined): number {
+  if (!hora) return 0
   const [h, m] = hora.split(':').map(Number)
   return (h || 0) * 60 + (m || 0)
 }
