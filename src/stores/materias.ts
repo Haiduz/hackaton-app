@@ -24,7 +24,7 @@ export const useMateriasStore = defineStore('materias', () => {
   const error = ref<string | null>(null);
 
   async function cargarDisponibles() {
-    const url = import.meta.env.VITE_MATERIAS_API_URL as string | undefined;
+    const url = import.meta.env.VITE_API_URL as string | undefined;
 
     if (!url) {
       disponibles.value = MATERIAS_DE_EJEMPLO;
@@ -34,7 +34,8 @@ export const useMateriasStore = defineStore('materias', () => {
     cargando.value = true;
     error.value = null;
     try {
-      const res = await fetch(url);
+      const res = await fetch(`${url}/subjects`);
+      console.log(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       disponibles.value = await res.json();
     } catch (e) {
