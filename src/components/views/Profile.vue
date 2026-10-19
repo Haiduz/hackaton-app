@@ -15,7 +15,7 @@ onMounted(() => store.cargarDisponibles())
           :checked="store.seleccionadas.some(s => s.id === m.id)"
           @change="store.toggleMateria(m)"
         />
-        {{ m.nombre }}
+        {{ m.name }}
       </label>
     </li>
   </ul>

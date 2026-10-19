@@ -6,6 +6,6 @@ const store = useMateriasStore()
 
 <template>
   <div v-for="m in store.seleccionadas" :key="m.id">
-    {{ m.nombre }}
+    {{ m.name }}
   </div>
 </template>

@@ -3,27 +3,20 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export interface Materia {
-  id: number
-  nombre: string
-  carreraId?: number
+  id: number,
+  name: string,
+  code:string,
+  year:number,
+  term:number,
 }
 
 const CARRERA_ID = 1
 
 // La API puede devolver el id de carrera plano o anidado
 function obtenerCarreraId(item: any): number | undefined {
-  const valor = item?.carreraId ?? item?.carrera_id ?? item?.id_carrera ?? item?.carrera?.id
+  const valor = item.career_id;
   return valor === undefined || valor === null ? undefined : Number(valor)
 }
-
-// Se usa mientras no esté definida VITE_API_URL
-const MATERIAS_DE_EJEMPLO: Materia[] = [
-  { id: 1, nombre: 'Análisis Matemático I' },
-  { id: 2, nombre: 'Álgebra y Geometría Analítica' },
-  { id: 3, nombre: 'Algoritmos y Estructuras de Datos' },
-  { id: 4, nombre: 'Física I' },
-  { id: 5, nombre: 'Programación I' },
-]
 
 export const useMateriasStore = defineStore('materias', () => {
   const disponibles = ref<Materia[]>([]);
@@ -35,22 +28,17 @@ export const useMateriasStore = defineStore('materias', () => {
   async function cargarDisponibles() {
     const url = import.meta.env.VITE_API_URL as string | undefined;
 
-    if (!url) {
-      disponibles.value = MATERIAS_DE_EJEMPLO;
-      return;
-    }
+    if(!url) return;
 
     cargando.value = true;
     error.value = null;
     try {
-      const res = await fetch(`${url}/subjects`);
-      console.log(url);
+      const res = await fetch(`${url}/subjects?career_id=1&kind=obligatoria`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const lista: any[] = Array.isArray(data) ? data : (data?.data ?? []);
       disponibles.value = lista
-        .filter(item => obtenerCarreraId(item) === CARRERA_ID)
-        .map(item => ({ ...item, carreraId: CARRERA_ID }));
+        .filter(item => obtenerCarreraId(item) === CARRERA_ID);
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Error al cargar materias';
       disponibles.value = [];
