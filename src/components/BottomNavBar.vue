@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
-
-const activeTab = ref("inicio");
+const activeTab = defineModel<string>({ default: "inicio" });
 
 const tabs = [
   { id: "inicio", label: "Inicio", icon: "home" },
