@@ -79,7 +79,8 @@ function onBackdropClick(event: MouseEvent) {
 
       <section class="bloque">
         <h3>Correlativas necesarias</h3>
-        <p v-if="!correlativas.length" class="vacio">No requiere correlativas.</p>
+        <p v-if="materia.nota" class="vacio">{{ materia.nota }}</p>
+        <p v-if="!correlativas.length && !materia.nota" class="vacio">No requiere correlativas.</p>
         <ul v-else>
           <li v-for="c in correlativas" :key="c.id" :class="`estado-${c.estado}`">
             <span class="punto" aria-hidden="true" />
