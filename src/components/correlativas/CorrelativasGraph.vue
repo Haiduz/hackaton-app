@@ -2,10 +2,8 @@
 import { computed, ref } from 'vue'
 import { VueFlow, MarkerType, type Edge, type Node, type VueFlowStore } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
-import { Controls } from '@vue-flow/controls'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
-import '@vue-flow/controls/dist/style.css'
 import MateriaNode from './MateriaNode.vue'
 import MateriaDialog from './MateriaDialog.vue'
 import type { EstadoMateria, MateriaPlan } from '../../data/correlativas'
@@ -160,7 +158,6 @@ function cerrarDialog() {
           </div>
         </template>
         <Background pattern-color="var(--c-borde)" :gap="20" :size="1.2" />
-        <Controls :show-interactive="false" position="bottom-right" />
       </VueFlow>
     </div>
 
@@ -311,17 +308,6 @@ h1 {
 
 .lienzo :deep(.vue-flow__node-year) {
   pointer-events: none;
-}
-
-.lienzo :deep(.vue-flow__controls) {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(20, 33, 61, 0.12);
-}
-
-.lienzo :deep(.vue-flow__controls-button) {
-  width: 44px;
-  height: 44px;
 }
 
 .lienzo :deep(.vue-flow__pane) {
