@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, type Component } from "vue"
+import { UserRound } from "lucide-vue-next"
 import bottomNavigation from "./components/BottomNavBar.vue"
 import Home from "./components/views/Home.vue"
 import Timer from "./components/views/Timer.vue"
@@ -22,10 +23,20 @@ const activeView = computed(() => views[activeTab.value] ?? Home)
 </script>
 
 <template>
-  <div style="text-align: left;">
-    <h2 style="margin-left: 1rem;">Hackaton App</h2>
-    <hr>
-  </div>
+  <header class="app-header">
+    <h2 class="app-title">Hackaton App</h2>
+    <button
+      type="button"
+      class="profile-button"
+      :class="{ active: activeTab === 'profile' }"
+      aria-label="Perfil"
+      :aria-current="activeTab === 'profile' ? 'page' : undefined"
+      @click="activeTab = 'profile'"
+    >
+      <UserRound :size="20" :stroke-width="1.8" aria-hidden="true" />
+      <span>Perfil</span>
+    </button>
+  </header>
   <main class="view-container">
     <KeepAlive>
       <component :is="activeView" :key="activeTab" />
@@ -35,6 +46,42 @@ const activeView = computed(() => views[activeTab.value] ?? Home)
 </template>
 
 <style scoped>
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.app-title {
+  margin: 0;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.profile-button:hover {
+  border-color: currentColor;
+}
+
+.profile-button.active {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
 .view-container {
   padding: 1rem 1rem calc(64px + 1rem + env(safe-area-inset-bottom));
   text-align: left;

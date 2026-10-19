@@ -10,7 +10,7 @@ import {
   weekdayDe,
   type EventoCalendario,
 } from '../../utils/calendario'
-import { nombreDia } from '../../utils/horarios'
+import { comisionesUnicas, nombreDia } from '../../utils/horarios'
 import AvisoConflictos from '../calendario/AvisoConflictos.vue'
 import CalendarioGrilla from '../calendario/CalendarioGrilla.vue'
 import DetalleEvento from '../calendario/DetalleEvento.vue'
@@ -40,7 +40,7 @@ onUnmounted(() => window.clearInterval(temporizador))
 
 const eventos = computed<EventoCalendario[]>(() =>
   store.seleccionadas.flatMap((m, i) =>
-    (store.overviews[m.id]?.sessions ?? [])
+    comisionesUnicas(store.overviews[m.id]?.sessions ?? [])
       .filter(c => c.start_time && c.end_time && c.weekday)
       .map(c => ({
         id: c.id,

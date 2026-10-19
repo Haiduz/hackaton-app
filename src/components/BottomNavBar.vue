@@ -7,7 +7,6 @@ const tabs = [
   { id: "inicio", label: "Inicio", icon: "home" },
   { id: "timer", label: "Pomodoro", icon: "timer" },
   { id: "stats", label: "Stats", icon: "stats" },
-  { id: "profile", label: "Perfil", icon: "profile" },
 ];
 
 function selectTab(id: string) {
