@@ -1,19 +1,30 @@
 <script setup lang="ts">
-import type { Materia } from '../stores/materias'
+import { computed, onMounted } from 'vue'
+import { useMateriasStore, type Materia } from '../stores/materias'
 import Colapsable from './Colapsable.vue'
 import SeccionHorarios from './secciones/SeccionHorarios.vue'
 
-defineProps<{
+const props = defineProps<{
   materia: Materia
 }>()
+
+const store = useMateriasStore()
+const campusUrl = computed(() => store.overviews[props.materia.id]?.campus_url ?? null)
+
+onMounted(() => store.cargarOverview(props.materia.id))
 </script>
 
 <template>
   <Colapsable :titulo="materia.name" :subtitulo="materia.code ?? undefined" variante="materia">
     <slot>
-      <p class="placeholder">Información de {{ materia.name }} (próximamente)</p>
-
       <!-- Cada sección tendrá su propio componente y su propia petición a la API -->
+      <section v-if="campusUrl" class="seccion">
+        <h5 class="seccion-titulo">Campus virtual</h5>
+        <a :href="campusUrl" target="_blank" rel="noopener noreferrer" class="campus-link">
+          {{ campusUrl }}
+        </a>
+      </section>
+
       <section class="seccion">
         <h5 class="seccion-titulo">Horarios</h5>
         <SeccionHorarios :materia-id="materia.id"></SeccionHorarios>
@@ -33,9 +44,10 @@ defineProps<{
 </template>
 
 <style scoped>
-.placeholder {
-  margin: 0;
+.campus-link {
   font-size: 14px;
+  color: var(--accent);
+  overflow-wrap: anywhere;
 }
 
 .seccion {

@@ -1,39 +1,37 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-
-interface Horario {
-  id: number
-  dia: string
-  desde: string
-  hasta: string
-  aula: string | null
-}
+import { computed, onMounted } from 'vue'
+import { useMateriasStore } from '../../stores/materias'
+import { nombreDia, ordenarComisiones, textoAula } from '../../utils/horarios'
 
 const props = defineProps<{
   materiaId: number
 }>()
 
-const horarios = ref<Horario[]>([])
-const cargando = ref(false)
-const error = ref<string | null>(null)
+const store = useMateriasStore()
 
-// TODO: pedir los horarios a la API con props.materiaId
-// (ej: GET `${import.meta.env.VITE_API_URL}/subjects/${props.materiaId}/schedules`),
-// cargarlos en `horarios` y manejar `cargando` / `error`.
-void props
+const cargando = computed(() => store.overviewsCargando[props.materiaId] ?? false)
+const error = computed(() => store.overviewsError[props.materiaId] ?? null)
+const comisiones = computed(() =>
+  ordenarComisiones(store.overviews[props.materiaId]?.sessions ?? []),
+)
+const cargado = computed(() => !!store.overviews[props.materiaId])
+
+onMounted(() => store.cargarOverview(props.materiaId))
 </script>
 
 <template>
   <div class="horarios">
     <p v-if="cargando" class="estado">Cargando horarios...</p>
     <p v-else-if="error" class="estado estado-error">{{ error }}</p>
-    <p v-else-if="!horarios.length" class="estado">Horarios (próximamente)</p>
+    <p v-else-if="cargado && !comisiones.length" class="estado">Sin horarios publicados.</p>
 
     <ul v-else class="lista">
-      <li v-for="h in horarios" :key="h.id" class="horario">
-        <span class="dia">{{ h.dia }}</span>
-        <span>{{ h.desde }} - {{ h.hasta }}</span>
-        <code v-if="h.aula">{{ h.aula }}</code>
+      <li v-for="c in comisiones" :key="c.id" class="horario">
+        <span class="dia">{{ nombreDia(c.weekday) }}</span>
+        <span>{{ c.start_time }} - {{ c.end_time }}</span>
+        <code v-if="textoAula(c)">{{ textoAula(c) }}</code>
+        <span v-if="c.mode && c.mode !== 'presencial'" class="modo">{{ c.mode }}</span>
+        <span v-if="c.notes" class="notas">{{ c.notes }}</span>
       </li>
     </ul>
   </div>
@@ -62,12 +60,22 @@ void props
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.75rem;
+  gap: 0.25rem 0.75rem;
   font-size: 14px;
 }
 
 .dia {
+  min-width: 5.5rem;
   color: var(--text-h);
   font-weight: 500;
+}
+
+.modo {
+  text-transform: capitalize;
+}
+
+.notas {
+  flex-basis: 100%;
+  font-size: 13px;
 }
 </style>
