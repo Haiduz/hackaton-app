@@ -118,11 +118,12 @@ function cerrarDialog() {
 </script>
 
 <template>
-  <section class="correlativas" aria-label="Árbol de correlativas">
+  <section class="correlativas" aria-labelledby="correlativas-titulo">
     <header class="barra">
-      <p class="progreso" :aria-label="`${resumen.aprobada} de ${materias.length} materias aprobadas`">
-        <strong>{{ resumen.aprobada }}</strong>/{{ materias.length }}
-      </p>
+      <div class="titulos">
+        <h1 id="correlativas-titulo">Árbol de correlativas</h1>
+        <p>{{ resumen.aprobada }} de {{ materias.length }} materias aprobadas</p>
+      </div>
       <ul class="leyenda" aria-label="Estados">
         <li v-for="estado in ordenEstados" :key="estado" :class="`estado-${estado}`">
           <span class="punto" aria-hidden="true" />
@@ -192,33 +193,45 @@ function cerrarDialog() {
 
 .barra {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 12px;
-  padding: 10px 16px;
+  padding: 16px;
   background: var(--c-superficie);
   border-bottom: 1px solid var(--c-borde);
 }
 
-.progreso {
-  flex-shrink: 0;
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 15px;
-  color: var(--c-tinta-suave);
+@media (min-width: 720px) {
+  .barra {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
-.progreso strong {
-  color: var(--c-aprobada);
-  font-weight: 700;
+.titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--c-tinta);
+}
+
+.titulos p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--c-tinta-suave);
 }
 
 .leyenda {
   display: flex;
-  flex: 1;
-  min-width: 0;
   gap: 6px;
-  margin: 0;
-  padding: 0;
+  margin: 0 -16px;
+  padding: 0 16px;
   list-style: none;
   overflow-x: auto;
   scrollbar-width: none;
@@ -226,6 +239,15 @@ function cerrarDialog() {
 
 .leyenda::-webkit-scrollbar {
   display: none;
+}
+
+@media (min-width: 720px) {
+  .leyenda {
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
 }
 
 .leyenda li {
