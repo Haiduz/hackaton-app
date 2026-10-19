@@ -12,7 +12,22 @@ export const useMateriasStore = defineStore('materias', () => {
   const disponibles = ref<Materia[]>([]);
   const seleccionadas = ref<Materia[]>([]);
   // Estado base por id de materia. Las que no están acá son "libre".
-  const estados = ref<Record<number, EstadoBase>>({});
+  // Mock mientras Perfil no cargue los estados reales.
+  const estados = ref<Record<number, EstadoBase>>({
+    111: 'aprobada',
+    112: 'aprobada',
+    113: 'aprobada',
+    121: 'aprobada',
+    122: 'aprobada',
+    123: 'aprobada',
+    211: 'aprobada',
+    212: 'aprobada',
+    314: 'aprobada',
+    213: 'regular',
+    221: 'regular',
+    222: 'regular',
+    223: 'regular',
+  });
 
   const plan = computed<MateriaPlan[]>(() => calcularPlan(materiasLCC, estados.value));
 

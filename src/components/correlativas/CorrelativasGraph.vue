@@ -8,7 +8,6 @@ import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
 import MateriaNode from './MateriaNode.vue'
 import MateriaDialog from './MateriaDialog.vue'
-import MateriasLista from './MateriasLista.vue'
 import type { EstadoMateria, MateriaPlan } from '../../data/correlativas'
 import { ESTADOS } from '../../data/correlativas'
 
@@ -19,14 +18,7 @@ const COLUMNA = 232
 const FILA = 100
 const CABECERA = 56
 
-type Vista = 'lista' | 'mapa'
-
 const esTelefono = window.matchMedia('(max-width: 719px)').matches
-const vista = ref<Vista>(esTelefono ? 'lista' : 'mapa')
-const vistas: { valor: Vista; label: string }[] = [
-  { valor: 'lista', label: 'Lista' },
-  { valor: 'mapa', label: 'Mapa' },
-]
 
 const ZOOM_TELEFONO = 0.85
 
@@ -130,23 +122,9 @@ function cerrarDialog() {
 <template>
   <section class="correlativas" aria-labelledby="correlativas-titulo">
     <header class="barra">
-      <div class="fila-titulo">
-        <div class="titulos">
-          <h1 id="correlativas-titulo">Árbol de correlativas</h1>
-          <p>{{ resumen.aprobada }} de {{ materias.length }} materias aprobadas</p>
-        </div>
-        <div class="vistas" role="group" aria-label="Tipo de vista">
-          <button
-            v-for="v in vistas"
-            :key="v.valor"
-            type="button"
-            class="vista"
-            :aria-pressed="vista === v.valor"
-            @click="vista = v.valor"
-          >
-            {{ v.label }}
-          </button>
-        </div>
+      <div class="titulos">
+        <h1 id="correlativas-titulo">Árbol de correlativas</h1>
+        <p>{{ resumen.aprobada }} de {{ materias.length }} materias aprobadas</p>
       </div>
       <ul class="leyenda" aria-label="Estados">
         <li v-for="estado in ordenEstados" :key="estado" :class="`estado-${estado}`">
@@ -158,9 +136,7 @@ function cerrarDialog() {
     </header>
 
     <div class="lienzo">
-      <MateriasLista v-if="vista === 'lista'" :materias="materias" @select="abrirMateria" />
       <VueFlow
-        v-else
         :nodes="nodes"
         :edges="edges"
         :min-zoom="0.3"
@@ -233,48 +209,6 @@ function cerrarDialog() {
     align-items: center;
     justify-content: space-between;
   }
-}
-
-.fila-titulo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.vistas {
-  display: inline-flex;
-  flex-shrink: 0;
-  padding: 3px;
-  border: 1px solid var(--c-borde);
-  border-radius: 10px;
-  background: var(--c-fondo);
-}
-
-.vista {
-  min-width: 64px;
-  min-height: 40px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--c-tinta-suave);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.vista[aria-pressed='true'] {
-  background: var(--c-superficie);
-  color: var(--c-tinta);
-  box-shadow: 0 1px 3px rgba(20, 33, 61, 0.15);
-}
-
-.vista:focus-visible {
-  outline: 2px solid var(--c-tinta);
-  outline-offset: 2px;
 }
 
 .titulos {
