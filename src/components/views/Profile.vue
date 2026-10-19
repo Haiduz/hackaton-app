@@ -6,17 +6,19 @@ const store = useMateriasStore()
 onMounted(() => store.cargarDisponibles())
 
 const materiasPorAnio = computed(() => {
-  const grupos = new Map<number, Materia[]>()
+  const grupos = new Map<number | null, Materia[]>()
   for (const m of store.disponibles) {
     const lista = grupos.get(m.year) ?? []
     lista.push(m)
     grupos.set(m.year, lista)
   }
   return [...grupos.entries()]
-    .sort(([a], [b]) => a - b)
+    .sort(([a], [b]) => (a ?? 99) - (b ?? 99))
     .map(([anio, materias]) => ({
       anio,
-      materias: [...materias].sort((a, b) => a.term - b.term || a.name.localeCompare(b.name)),
+      materias: [...materias].sort(
+        (a, b) => (a.term ?? 99) - (b.term ?? 99) || a.name.localeCompare(b.name)
+      ),
     }))
 })
 
@@ -36,8 +38,10 @@ function estaSeleccionada(materia: Materia) {
     <p v-else-if="store.error" class="estado estado-error">{{ store.error }}</p>
     <p v-else-if="!store.disponibles.length" class="estado">No hay materias disponibles.</p>
 
-    <section v-for="grupo in materiasPorAnio" :key="grupo.anio" class="anio">
-      <h4 class="anio-titulo">{{ grupo.anio }}º año</h4>
+    <section v-for="grupo in materiasPorAnio" :key="String(grupo.anio)" class="anio">
+      <h4 class="anio-titulo">
+        {{ grupo.anio ? `${grupo.anio}º año` : 'Sin año asignado' }}
+      </h4>
       <ul class="lista">
         <li v-for="m in grupo.materias" :key="m.id">
           <label class="materia" :class="{ activa: estaSeleccionada(m) }">
@@ -49,8 +53,8 @@ function estaSeleccionada(materia: Materia) {
             <span class="materia-info">
               <span class="materia-nombre">{{ m.name }}</span>
               <span class="materia-meta">
-                <code>{{ m.code }}</code>
-                <span>{{ m.term }}º cuatrimestre</span>
+                <code v-if="m.code">{{ m.code }}</code>
+                <span v-if="m.term">{{ m.term }}º cuatrimestre</span>
               </span>
             </span>
           </label>
