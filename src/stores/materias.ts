@@ -5,9 +5,18 @@ import { ref } from 'vue'
 export interface Materia {
   id: number
   nombre: string
+  carreraId?: number
 }
 
-// Se usa mientras no esté definida VITE_MATERIAS_API_URL
+const CARRERA_ID = 1
+
+// La API puede devolver el id de carrera plano o anidado
+function obtenerCarreraId(item: any): number | undefined {
+  const valor = item?.carreraId ?? item?.carrera_id ?? item?.id_carrera ?? item?.carrera?.id
+  return valor === undefined || valor === null ? undefined : Number(valor)
+}
+
+// Se usa mientras no esté definida VITE_API_URL
 const MATERIAS_DE_EJEMPLO: Materia[] = [
   { id: 1, nombre: 'Análisis Matemático I' },
   { id: 2, nombre: 'Álgebra y Geometría Analítica' },
@@ -37,7 +46,11 @@ export const useMateriasStore = defineStore('materias', () => {
       const res = await fetch(`${url}/subjects`);
       console.log(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      disponibles.value = await res.json();
+      const data = await res.json();
+      const lista: any[] = Array.isArray(data) ? data : (data?.data ?? []);
+      disponibles.value = lista
+        .filter(item => obtenerCarreraId(item) === CARRERA_ID)
+        .map(item => ({ ...item, carreraId: CARRERA_ID }));
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Error al cargar materias';
       disponibles.value = [];
