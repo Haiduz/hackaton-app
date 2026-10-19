@@ -59,8 +59,7 @@ const eventos = computed<EventoCalendario[]>(() =>
 const dias = computed(() => {
   if (vista.value === 'dia') return [{ fecha: fecha.value, weekday: weekdayDe(fecha.value) }]
   const lunes = inicioSemana(fecha.value)
-  const hayDomingo = eventos.value.some(e => e.weekday === 7)
-  return Array.from({ length: hayDomingo ? 7 : 6 }, (_, i) => ({
+  return Array.from({ length: 7 }, (_, i) => ({
     fecha: sumarDias(lunes, i),
     weekday: i + 1,
   }))
