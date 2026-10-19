@@ -16,17 +16,17 @@ defineProps<{
       <!-- Cada sección tendrá su propio componente y su propia petición a la API -->
       <section class="seccion">
         <h5 class="seccion-titulo">Horarios</h5>
-        <SeccionHorarios :materia-id="materia.id" />
+        <SeccionHorarios :materia-id="materia.id"></SeccionHorarios>
       </section>
 
       <section class="seccion">
         <h5 class="seccion-titulo">Bibliografía</h5>
-        <div class="seccion-vacia" />
+        <div class="seccion-vacia"></div>
       </section>
 
       <section class="seccion">
         <h5 class="seccion-titulo">Exámenes</h5>
-        <div class="seccion-vacia" />
+        <div class="seccion-vacia"></div>
       </section>
     </slot>
   </Colapsable>

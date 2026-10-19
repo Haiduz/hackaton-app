@@ -19,6 +19,12 @@ interface Page<T> {
   offset: number
 }
 
+// "r123" -> año 1, cuatrimestre 2. Solo aplica a códigos con formato rXXX.
+function derivarAnioYCuatrimestre(code: string | null): { year: number; term: number } | null {
+  const match = code?.trim().toLowerCase().match(/^r(\d)(\d)\d$/)
+  if (!match) return null
+  return { year: Number(match[1]), term: Number(match[2]) }
+}
 
 export const useMateriasStore = defineStore('materias', () => {
   const disponibles = ref<Materia[]>([])
@@ -36,11 +42,15 @@ export const useMateriasStore = defineStore('materias', () => {
     cargando.value = true
     error.value = null
     try {
-      const url = `${BASE_URL}/subjects?career_id=1&kind=obligatoria`;
+      const url = `${BASE_URL}/subjects?career_id=1&kind=obligatoria`
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data: Page<Materia> = await res.json()
-      disponibles.value = data.items
+
+      disponibles.value = data.items.map(m => {
+        const derivado = derivarAnioYCuatrimestre(m.code)
+        return derivado ? { ...m, year: derivado.year, term: derivado.term } : m
+      })
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Error al cargar materias'
       disponibles.value = []
