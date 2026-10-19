@@ -1,4 +1,8 @@
-export type EstadoMateria = 'pendiente' | 'regular' | 'aprobada' | 'libre'
+// Estado que marca el usuario sobre cada materia.
+export type EstadoBase = 'libre' | 'regular' | 'aprobada'
+
+// Estado que se muestra en el árbol. "cursable" y "no_cursable" se derivan de las correlativas.
+export type EstadoMateria = 'aprobada' | 'regular' | 'cursable' | 'no_cursable'
 
 export interface MateriaPlan {
   id: number
@@ -12,18 +16,29 @@ export interface MateriaPlan {
 
 export const ESTADOS: Record<EstadoMateria, { label: string; descripcion: string }> = {
   aprobada: { label: 'Aprobada', descripcion: 'Final aprobado' },
-  regular: { label: 'Regular', descripcion: 'Cursada aprobada, falta el final' },
-  libre: { label: 'Libre', descripcion: 'Se rinde sin regularidad' },
-  pendiente: { label: 'Pendiente', descripcion: 'Todavía sin cursar' },
-}
-
-export function estaHabilitada(materia: MateriaPlan, porId: Map<number, MateriaPlan>): boolean {
-  return materia.correlativas.every((id) => porId.get(id)?.estado === 'aprobada')
+  regular: { label: 'Regular', descripcion: 'Parciales aprobados, habilita el cursado de las siguientes' },
+  cursable: { label: 'Cursable', descripcion: 'Todas sus correlativas están regulares o aprobadas' },
+  no_cursable: { label: 'No cursable', descripcion: 'Le faltan correlativas regulares o aprobadas' },
 }
 
 export type MateriaBase = Omit<MateriaPlan, 'estado'>
 
-// El estado de cada materia lo define el usuario desde Perfil (store de materias).
+export function calcularPlan(
+  materias: MateriaBase[],
+  estados: Record<number, EstadoBase | undefined>,
+): MateriaPlan[] {
+  const base = (id: number): EstadoBase => estados[id] ?? 'libre'
+  const habilitaCursado = (id: number) => base(id) === 'regular' || base(id) === 'aprobada'
+
+  return materias.map((m) => {
+    const propio = base(m.id)
+    const estado: EstadoMateria =
+      propio !== 'libre' ? propio : m.correlativas.every(habilitaCursado) ? 'cursable' : 'no_cursable'
+    return { ...m, estado }
+  })
+}
+
+// El estado base de cada materia (libre, regular, aprobada) lo carga el usuario desde Perfil.
 export const materiasLCC: MateriaBase[] = [
   { id: 1, name: 'Análisis Matemático I', code: 'AM1', year: 1, term: 1, correlativas: [] },
   { id: 2, name: 'Álgebra y Geometría Analítica I', code: 'AGA1', year: 1, term: 1, correlativas: [] },

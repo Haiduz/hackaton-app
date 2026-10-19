@@ -9,7 +9,7 @@ import '@vue-flow/controls/dist/style.css'
 import MateriaNode from './MateriaNode.vue'
 import MateriaDialog from './MateriaDialog.vue'
 import type { EstadoMateria, MateriaPlan } from '../../data/correlativas'
-import { ESTADOS, estaHabilitada } from '../../data/correlativas'
+import { ESTADOS } from '../../data/correlativas'
 
 const props = defineProps<{ materias: MateriaPlan[] }>()
 const emit = defineEmits<{ materiaClick: [materia: MateriaPlan] }>()
@@ -46,7 +46,6 @@ const nodes = computed<Node[]>(() => {
       connectable: false,
       data: {
         materia,
-        habilitada: estaHabilitada(materia, porId.value),
         atenuada: !!relacionadas.value && !relacionadas.value.has(materia.id),
         resaltada: enfocadaId.value === materia.id,
       },
@@ -87,12 +86,12 @@ const edges = computed<Edge[]>(() =>
 )
 
 const resumen = computed(() => {
-  const conteo: Record<EstadoMateria, number> = { aprobada: 0, regular: 0, libre: 0, pendiente: 0 }
+  const conteo: Record<EstadoMateria, number> = { aprobada: 0, regular: 0, cursable: 0, no_cursable: 0 }
   props.materias.forEach((m) => conteo[m.estado]++)
   return conteo
 })
 
-const ordenEstados: EstadoMateria[] = ['aprobada', 'regular', 'libre', 'pendiente']
+const ordenEstados: EstadoMateria[] = ['aprobada', 'regular', 'cursable', 'no_cursable']
 
 function abrirMateria(id: string) {
   const materia = porId.value.get(Number(id))
@@ -167,8 +166,8 @@ function cerrarDialog() {
   --c-arista: #a3abba;
   --c-aprobada: #1f8a5b;
   --c-regular: #b7791f;
-  --c-libre: #c2410c;
-  --c-pendiente: #8a93a6;
+  --c-cursable: #2563a8;
+  --c-no-cursable: #8a93a6;
 }
 </style>
 
@@ -229,7 +228,7 @@ h1 {
 }
 
 .leyenda li {
-  --tono: var(--c-pendiente);
+  --tono: var(--c-no-cursable);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -242,7 +241,8 @@ h1 {
 
 .leyenda li.estado-aprobada { --tono: var(--c-aprobada); }
 .leyenda li.estado-regular { --tono: var(--c-regular); }
-.leyenda li.estado-libre { --tono: var(--c-libre); }
+.leyenda li.estado-cursable { --tono: var(--c-cursable); }
+.leyenda li.estado-no_cursable { --tono: var(--c-no-cursable); }
 
 .punto {
   width: 8px;

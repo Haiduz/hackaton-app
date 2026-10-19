@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { ArrowRight, Check, Lock, X } from 'lucide-vue-next'
 import type { MateriaPlan } from '../../data/correlativas'
-import { ESTADOS, estaHabilitada } from '../../data/correlativas'
+import { ESTADOS } from '../../data/correlativas'
 
 const props = defineProps<{
   materia: MateriaPlan | null
@@ -23,7 +23,9 @@ const habilita = computed(() =>
   props.materia ? props.materias.filter((m) => m.correlativas.includes(props.materia!.id)) : [],
 )
 
-const habilitada = computed(() => (props.materia ? estaHabilitada(props.materia, porId.value) : false))
+const faltantes = computed(() =>
+  correlativas.value.filter((c) => c.estado !== 'regular' && c.estado !== 'aprobada'),
+)
 
 watch(
   () => props.materia,
@@ -65,10 +67,14 @@ function onBackdropClick(event: MouseEvent) {
         <span class="estado-desc">{{ ESTADOS[materia.estado].descripcion }}</span>
       </div>
 
-      <p v-if="materia.estado === 'pendiente'" class="aviso" :class="{ ok: habilitada }">
-        <Check v-if="habilitada" :size="16" aria-hidden="true" />
+      <p v-if="materia.estado === 'cursable' || materia.estado === 'no_cursable'" class="aviso" :class="{ ok: materia.estado === 'cursable' }">
+        <Check v-if="materia.estado === 'cursable'" :size="16" aria-hidden="true" />
         <Lock v-else :size="16" aria-hidden="true" />
-        {{ habilitada ? 'Tenés todas las correlativas aprobadas. Podés cursarla.' : 'Te faltan correlativas para cursarla.' }}
+        {{
+          materia.estado === 'cursable'
+            ? 'Tenés todas las correlativas regulares o aprobadas. Podés cursarla.'
+            : `Para cursarla te falta regularizar: ${faltantes.map((f) => f.code).join(', ')}.`
+        }}
       </p>
 
       <section class="bloque">
@@ -126,7 +132,7 @@ function onBackdropClick(event: MouseEvent) {
 }
 
 .contenido {
-  --tono: var(--c-pendiente);
+  --tono: var(--c-no-cursable);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -135,7 +141,8 @@ function onBackdropClick(event: MouseEvent) {
 
 .estado-aprobada { --tono: var(--c-aprobada); }
 .estado-regular { --tono: var(--c-regular); }
-.estado-libre { --tono: var(--c-libre); }
+.estado-cursable { --tono: var(--c-cursable); }
+.estado-no_cursable { --tono: var(--c-no-cursable); }
 
 .encabezado {
   display: flex;
@@ -243,7 +250,7 @@ ul {
 }
 
 li {
-  --tono: var(--c-pendiente);
+  --tono: var(--c-no-cursable);
   display: flex;
   align-items: center;
   gap: 10px;

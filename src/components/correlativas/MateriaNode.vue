@@ -7,7 +7,6 @@ import { ESTADOS } from '../../data/correlativas'
 defineProps<{
   data: {
     materia: MateriaPlan
-    habilitada: boolean
     atenuada: boolean
     resaltada: boolean
   }
@@ -26,13 +25,8 @@ defineProps<{
       <span class="codigo">{{ data.materia.code }}</span>
       <span class="estado">
         <Check v-if="data.materia.estado === 'aprobada'" :size="12" :stroke-width="2.5" aria-hidden="true" />
-        <Lock
-          v-else-if="data.materia.estado === 'pendiente' && !data.habilitada"
-          :size="11"
-          :stroke-width="2.25"
-          aria-hidden="true"
-        />
-        {{ data.materia.estado === 'pendiente' && data.habilitada ? 'Habilitada' : ESTADOS[data.materia.estado].label }}
+        <Lock v-else-if="data.materia.estado === 'no_cursable'" :size="11" :stroke-width="2.25" aria-hidden="true" />
+        {{ ESTADOS[data.materia.estado].label }}
       </span>
     </div>
     <p class="nombre">{{ data.materia.name }}</p>
@@ -42,7 +36,7 @@ defineProps<{
 
 <style scoped>
 .materia-node {
-  --tono: var(--c-pendiente);
+  --tono: var(--c-no-cursable);
   width: 176px;
   min-height: 72px;
   box-sizing: border-box;
@@ -67,7 +61,8 @@ defineProps<{
 
 .estado-aprobada { --tono: var(--c-aprobada); }
 .estado-regular { --tono: var(--c-regular); }
-.estado-libre { --tono: var(--c-libre); }
+.estado-cursable { --tono: var(--c-cursable); }
+.estado-no_cursable { --tono: var(--c-no-cursable); }
 
 .atenuada { opacity: 0.28; }
 
