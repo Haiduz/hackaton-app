@@ -1,6 +1,7 @@
 // src/stores/materias.ts
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { calcularPlan, materiasLCC, type EstadoBase, type MateriaPlan } from '../data/correlativas'
 
 export interface Materia {
   id: number
@@ -70,6 +71,25 @@ export const useMateriasStore = defineStore('materias', () => {
   const seleccionadas = ref<Materia[]>([])
   const cargando = ref(false)
   const error = ref<string | null>(null)
+  // Estado base por id de materia. Las que no están acá son "libre".
+  // Mock mientras Perfil no cargue los estados reales.
+  const estados = ref<Record<number, EstadoBase>>({
+    111: 'aprobada',
+    112: 'aprobada',
+    113: 'aprobada',
+    121: 'aprobada',
+    122: 'aprobada',
+    123: 'aprobada',
+    211: 'aprobada',
+    212: 'aprobada',
+    314: 'aprobada',
+    213: 'regular',
+    221: 'regular',
+    222: 'regular',
+    223: 'regular',
+  });
+
+  const plan = computed<MateriaPlan[]>(() => calcularPlan(materiasLCC, estados.value));
 
   async function cargarDisponibles() {
     const BASE_URL = import.meta.env.VITE_API_URL as string | undefined
@@ -130,16 +150,23 @@ export const useMateriasStore = defineStore('materias', () => {
     else seleccionadas.value.push(materia)
   }
 
+  function setEstado(id: number, estado: EstadoBase) {
+    estados.value = { ...estados.value, [id]: estado }
+  }
+
   return {
     disponibles,
     seleccionadas,
     cargando,
     error,
+    estados,
+    plan,
     overviews,
     overviewsCargando,
     overviewsError,
     cargarDisponibles,
     cargarOverview,
     toggleMateria,
+    setEstado,
   }
 })
