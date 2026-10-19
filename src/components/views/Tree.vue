@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import CorrelativasGraph from '../correlativas/CorrelativasGraph.vue'
-import { materiasLCC } from '../../data/correlativas'
+import { useMateriasStore } from '../../stores/materias'
+
+const store = useMateriasStore()
 </script>
 
 <template>
-  <CorrelativasGraph :materias="materiasLCC" />
+  <CorrelativasGraph :materias="store.plan" />
 </template>

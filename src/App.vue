@@ -2,6 +2,7 @@
 import { ref } from "vue"
 import bottomNavigation from "./components/BottomNavBar.vue"
 import Tree from "./components/views/Tree.vue"
+import Profile from "./components/views/Profile.vue"
 
 const activeTab = ref("tree")
 </script>
@@ -14,5 +15,6 @@ const activeTab = ref("tree")
     <hr>
   </div>
   <Tree v-if="activeTab === 'tree'" />
+  <Profile v-else-if="activeTab === 'profile'" />
   <bottomNavigation v-model="activeTab"></bottomNavigation>
 </template>

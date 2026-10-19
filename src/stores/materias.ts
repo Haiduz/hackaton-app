@@ -1,6 +1,7 @@
 // src/stores/materias.ts
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { materiasLCC, type EstadoMateria, type MateriaPlan } from '../data/correlativas'
 
 export interface Materia {
   id: number
@@ -10,6 +11,11 @@ export interface Materia {
 export const useMateriasStore = defineStore('materias', () => {
   const disponibles = ref<Materia[]>([]);
   const seleccionadas = ref<Materia[]>([]);
+  const estados = ref<Record<number, EstadoMateria>>({});
+
+  const plan = computed<MateriaPlan[]>(() =>
+    materiasLCC.map((m) => ({ ...m, estado: estados.value[m.id] ?? 'pendiente' })),
+  );
 
   async function cargarDisponibles() {
     // Acá va tu llamada a la base de datos
@@ -23,5 +29,9 @@ export const useMateriasStore = defineStore('materias', () => {
     else seleccionadas.value.push(materia);
   }
 
-  return { disponibles, seleccionadas, cargarDisponibles, toggleMateria };
+  function setEstado(id: number, estado: EstadoMateria) {
+    estados.value = { ...estados.value, [id]: estado };
+  }
+
+  return { disponibles, seleccionadas, estados, plan, cargarDisponibles, toggleMateria, setEstado };
 })
