@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { VueFlow, MarkerType, type Edge, type Node } from '@vue-flow/core'
+import { VueFlow, MarkerType, type Edge, type Node, type VueFlowStore } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import '@vue-flow/core/dist/style.css'
@@ -8,6 +8,7 @@ import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
 import MateriaNode from './MateriaNode.vue'
 import MateriaDialog from './MateriaDialog.vue'
+import MateriasLista from './MateriasLista.vue'
 import type { EstadoMateria, MateriaPlan } from '../../data/correlativas'
 import { ESTADOS } from '../../data/correlativas'
 
@@ -17,6 +18,22 @@ const emit = defineEmits<{ materiaClick: [materia: MateriaPlan] }>()
 const COLUMNA = 232
 const FILA = 100
 const CABECERA = 56
+
+type Vista = 'lista' | 'mapa'
+
+const esTelefono = window.matchMedia('(max-width: 719px)').matches
+const vista = ref<Vista>(esTelefono ? 'lista' : 'mapa')
+const vistas: { valor: Vista; label: string }[] = [
+  { valor: 'lista', label: 'Lista' },
+  { valor: 'mapa', label: 'Mapa' },
+]
+
+const ZOOM_TELEFONO = 0.85
+
+function onPaneReady(instance: VueFlowStore) {
+  if (esTelefono) instance.setViewport({ x: 16, y: 16, zoom: ZOOM_TELEFONO })
+  else instance.fitView({ padding: 0.1 })
+}
 
 const seleccionada = ref<MateriaPlan | null>(null)
 const enfocadaId = ref<number | null>(null)
@@ -93,9 +110,12 @@ const resumen = computed(() => {
 
 const ordenEstados: EstadoMateria[] = ['aprobada', 'regular', 'cursable', 'no_cursable']
 
-function abrirMateria(id: string) {
+function abrirMateriaPorId(id: string) {
   const materia = porId.value.get(Number(id))
-  if (!materia) return
+  if (materia) abrirMateria(materia)
+}
+
+function abrirMateria(materia: MateriaPlan) {
   enfocadaId.value = materia.id
   seleccionada.value = materia
   emit('materiaClick', materia)
@@ -110,9 +130,23 @@ function cerrarDialog() {
 <template>
   <section class="correlativas" aria-labelledby="correlativas-titulo">
     <header class="barra">
-      <div class="titulos">
-        <h1 id="correlativas-titulo">Árbol de correlativas</h1>
-        <p>{{ resumen.aprobada }} de {{ materias.length }} materias aprobadas</p>
+      <div class="fila-titulo">
+        <div class="titulos">
+          <h1 id="correlativas-titulo">Árbol de correlativas</h1>
+          <p>{{ resumen.aprobada }} de {{ materias.length }} materias aprobadas</p>
+        </div>
+        <div class="vistas" role="group" aria-label="Tipo de vista">
+          <button
+            v-for="v in vistas"
+            :key="v.valor"
+            type="button"
+            class="vista"
+            :aria-pressed="vista === v.valor"
+            @click="vista = v.valor"
+          >
+            {{ v.label }}
+          </button>
+        </div>
       </div>
       <ul class="leyenda" aria-label="Estados">
         <li v-for="estado in ordenEstados" :key="estado" :class="`estado-${estado}`">
@@ -124,17 +158,19 @@ function cerrarDialog() {
     </header>
 
     <div class="lienzo">
+      <MateriasLista v-if="vista === 'lista'" :materias="materias" @select="abrirMateria" />
       <VueFlow
+        v-else
         :nodes="nodes"
         :edges="edges"
-        :fit-view-on-init="true"
         :min-zoom="0.3"
         :max-zoom="1.6"
         :nodes-draggable="false"
         :nodes-connectable="false"
         :elements-selectable="false"
         :zoom-on-double-click="false"
-        @node-click="({ node }) => node.type === 'materia' && abrirMateria(node.id)"
+        @pane-ready="onPaneReady"
+        @node-click="({ node }) => node.type === 'materia' && abrirMateriaPorId(node.id)"
         @node-mouse-enter="({ node }) => node.type === 'materia' && !seleccionada && (enfocadaId = Number(node.id))"
         @node-mouse-leave="() => !seleccionada && (enfocadaId = null)"
       >
@@ -199,6 +235,48 @@ function cerrarDialog() {
   }
 }
 
+.fila-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vistas {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 3px;
+  border: 1px solid var(--c-borde);
+  border-radius: 10px;
+  background: var(--c-fondo);
+}
+
+.vista {
+  min-width: 64px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--c-tinta-suave);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.vista[aria-pressed='true'] {
+  background: var(--c-superficie);
+  color: var(--c-tinta);
+  box-shadow: 0 1px 3px rgba(20, 33, 61, 0.15);
+}
+
+.vista:focus-visible {
+  outline: 2px solid var(--c-tinta);
+  outline-offset: 2px;
+}
+
 .titulos {
   display: flex;
   flex-direction: column;
@@ -220,15 +298,31 @@ h1 {
 
 .leyenda {
   display: flex;
-  flex-wrap: wrap;
   gap: 6px;
-  margin: 0;
-  padding: 0;
+  margin: 0 -16px;
+  padding: 0 16px;
   list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.leyenda::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  .leyenda {
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
 }
 
 .leyenda li {
   --tono: var(--c-no-cursable);
+  flex-shrink: 0;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -292,7 +386,11 @@ h1 {
 }
 
 .lienzo :deep(.vue-flow__controls-button) {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
+}
+
+.lienzo :deep(.vue-flow__pane) {
+  touch-action: none;
 }
 </style>
