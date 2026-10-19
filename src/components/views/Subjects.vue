@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useMateriasStore, type Materia } from '../../stores/materias'
+import { useMateriasStore, type Materia } from '../../stores/materias.ts'
 import Colapsable from '../Colapsable.vue'
 
 interface GrupoCuatrimestre {
@@ -72,8 +72,8 @@ function contadorTexto(cantidad: number) {
 </script>
 
 <template>
-  <section class="profile">
-    <header class="profile-header">
+  <section class="subjects">
+    <header class="subjects-header">
       <h3>Mis materias</h3>
       <span class="contador">{{ contadorTexto(store.seleccionadas.length) }}</span>
     </header>
@@ -121,20 +121,20 @@ function contadorTexto(cantidad: number) {
 </template>
 
 <style scoped>
-.profile {
+.subjects {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.profile-header {
+.subjects-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.profile-header h3 {
+.subjects-header h3 {
   margin: 0;
   color: var(--text-h);
 }
