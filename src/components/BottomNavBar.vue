@@ -85,16 +85,17 @@ import {
 
 <style scoped>
 .bottom-navigation {
-  position: fixed;
+  position: sticky;
   bottom: 0;
-  left: 0;
-  right: 0;
+  margin-top: auto;
   z-index: 1000;
 
   display: flex;
   justify-content: space-around;
   align-items: center;
 
+  flex-shrink: 0;
+  box-sizing: border-box;
   height: 64px;
   padding-bottom: env(safe-area-inset-bottom);
 
