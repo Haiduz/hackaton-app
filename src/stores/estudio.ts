@@ -2,16 +2,17 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { generarSesionesMock, MATERIAS_ESTUDIO } from '../data/sesionesMock'
 import { agruparPorDia, type MateriaEstudio, type Sesion } from '../utils/estudio'
+import { refPersistido, siguienteId as calcularSiguienteId } from '../utils/persistencia'
 
 export type DatosSesion = Omit<Sesion, 'id'>
 
-// Prototipo: las sesiones viven en memoria y se pierden al recargar.
+// Las sesiones se guardan en el navegador; los datos demo solo se generan la primera vez.
 export const useEstudioStore = defineStore('estudio', () => {
   const materias: MateriaEstudio[] = MATERIAS_ESTUDIO
-  const sesiones = ref<Sesion[]>(generarSesionesMock())
+  const sesiones = refPersistido<Sesion[]>('estudio.sesiones', generarSesionesMock)
   const resaltada = ref<number | null>(null)
   const edicionPendiente = ref<number | null>(null)
-  let siguienteId = sesiones.value.length + 1
+  let siguienteId = calcularSiguienteId(sesiones.value)
 
   const materiaPorId = computed(() => new Map(materias.map(m => [m.id, m])))
   const porDia = computed(() => agruparPorDia(sesiones.value))
@@ -49,7 +50,7 @@ export const useEstudioStore = defineStore('estudio', () => {
 
   function restaurarDemo() {
     sesiones.value = generarSesionesMock()
-    siguienteId = sesiones.value.length + 1
+    siguienteId = calcularSiguienteId(sesiones.value)
   }
 
   return {

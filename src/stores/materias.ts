@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { CODIGO_PLAN_POR_CODIGO_API, PLAN_LCC_2024, requisitosDelPlan } from '../data/planLCC2024'
+import { refPersistido, siguienteId } from '../utils/persistencia'
 
 export interface Materia {
   id: number
@@ -129,7 +130,7 @@ function apiUrl(): string | null {
 
 export const useMateriasStore = defineStore('materias', () => {
   const disponibles = ref<Materia[]>([])
-  const seleccionadas = ref<Materia[]>([])
+  const seleccionadas = refPersistido<Materia[]>('materias.seleccionadas', () => [])
   const cargando = ref(false)
   const error = ref<string | null>(null)
 
@@ -186,7 +187,7 @@ export const useMateriasStore = defineStore('materias', () => {
     }
   }
 
-  const condiciones = ref<Record<number, CondicionElegible>>({})
+  const condiciones = refPersistido<Record<number, CondicionElegible>>('materias.condiciones', () => ({}))
 
   async function cargarOverviews(ids: number[]) {
     await Promise.all(ids.map(cargarOverview))
@@ -264,8 +265,8 @@ export const useMateriasStore = defineStore('materias', () => {
   }
 
   // La API no publica fechas de parciales ni mesas: las carga el usuario.
-  const examenes = ref<Examen[]>([])
-  let siguienteExamenId = 1
+  const examenes = refPersistido<Examen[]>('materias.examenes', () => [])
+  let siguienteExamenId = siguienteId(examenes.value)
 
   function examenesDe(materiaId: number): Examen[] {
     return examenes.value

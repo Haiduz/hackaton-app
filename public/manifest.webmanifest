@@ -11,15 +11,21 @@
   "theme_color": "#e3b526",
   "icons": [
     {
-      "src": "/icons/icon.svg",
+      "src": "/icons/logo_cb.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-maskable.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/icons/logo_cb.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/logo_cb.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ]

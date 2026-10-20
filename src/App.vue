@@ -32,7 +32,7 @@ provide("navegar", (tab: string) => {
 <template>
   <header class="app-header">
     <div class="app-brand">
-      <img src="/logo_cb.svg" alt="" class="app-logo" />
+      <img src="/icons/logo_cb.svg" alt="" class="app-logo" />
       <h2 class="app-title">caso_base</h2>
     </div>
 
