@@ -3,6 +3,7 @@ import { computed, provide, ref, type Component } from "vue";
 import { BookText } from "lucide-vue-next";
 import bottomNavigation from "./components/BottomNavBar.vue";
 import AppLogo from "./components/AppLogo.vue";
+import CreditosDialog from "./components/CreditosDialog.vue";
 import Home from "./components/views/Home.vue";
 import Timer from "./components/views/Timer.vue";
 import Tree from "./components/views/Tree.vue";
@@ -21,6 +22,8 @@ const views: Record<string, Component> = {
   subjects: Subjects,
 }
 
+const creditos = ref<InstanceType<typeof CreditosDialog> | null>(null)
+
 const activeTab = ref("inicio")
 const activeView = computed(() => views[activeTab.value] ?? Home)
 
@@ -33,7 +36,15 @@ provide("navegar", (tab: string) => {
 <template>
   <header class="app-header">
     <div class="app-brand">
-      <AppLogo class="app-logo" />
+      <button
+        type="button"
+        class="app-logo-button"
+        aria-label="Ver créditos"
+        aria-haspopup="dialog"
+        @click="creditos?.abrir()"
+      >
+        <AppLogo class="app-logo" />
+      </button>
       <h2 class="app-title">caso_base</h2>
     </div>
 
@@ -55,6 +66,7 @@ provide("navegar", (tab: string) => {
     </KeepAlive>
   </main>
   <bottomNavigation v-model="activeTab"></bottomNavigation>
+  <CreditosDialog ref="creditos" />
 </template>
 
 <style scoped>
@@ -71,6 +83,20 @@ provide("navegar", (tab: string) => {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+
+.app-logo-button {
+  display: flex;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.app-logo-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .app-logo {
