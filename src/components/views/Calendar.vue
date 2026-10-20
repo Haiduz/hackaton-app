@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, onUnmounted, ref, watch } from 'vue'
 import { useEstudioStore } from '../../stores/estudio'
 import { useMateriasStore } from '../../stores/materias'
 import {
@@ -103,6 +103,12 @@ const dias = computed(() => {
 })
 
 const estudio = useEstudioStore()
+const navegar = inject<(tab: string) => void>('navegar', () => {})
+
+function abrirRegistro(id: number) {
+  estudio.pedirEdicion(id)
+  navegar('registros')
+}
 
 const sesionesEstudio = computed<SesionEstudioCalendario[]>(() => {
   if (vista.value !== 'semana') return []
@@ -300,6 +306,7 @@ const superpuestoCon = computed(() => {
         :ahora="ahora"
         :estudio="sesionesEstudio"
         @seleccionar="seleccionado = $event"
+        @abrir-estudio="abrirRegistro"
       />
 
       <div v-if="leyendaEstudio.length" class="leyenda">

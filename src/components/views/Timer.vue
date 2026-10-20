@@ -207,6 +207,21 @@ const hoyTotal = computed(() => {
   const guardado = store.porDia.get(clave(new Date()))?.total ?? 0
   return guardado + (enCurso.value ? focoAcumulado.value : 0)
 })
+
+const hoyPorMateria = computed(() => {
+  const hoy = clave(new Date())
+  const totales = new Map<number, number>()
+  for (const s of store.sesiones) {
+    if (s.fecha === hoy) totales.set(s.materiaId, (totales.get(s.materiaId) ?? 0) + s.foco)
+  }
+  if (enCurso.value && materiaId.value !== null) {
+    totales.set(materiaId.value, (totales.get(materiaId.value) ?? 0) + focoAcumulado.value)
+  }
+  return [...totales]
+    .filter(([, seg]) => seg >= 60)
+    .map(([id, seg]) => ({ id, seg, materia: store.materia(id) }))
+    .sort((a, b) => b.seg - a.seg)
+})
 </script>
 
 <template>
@@ -325,6 +340,14 @@ const hoyTotal = computed(() => {
       </button>
       <span class="hoy num">Hoy: <strong>{{ hmm(hoyTotal) }}</strong> de foco</span>
     </div>
+
+    <ul v-if="hoyPorMateria.length" class="hoy-materias" aria-label="Foco de hoy por materia">
+      <li v-for="m in hoyPorMateria" :key="m.id" :title="m.materia?.nombre">
+        <span class="punto" :style="{ background: m.materia?.color ?? 'var(--text)' }" aria-hidden="true" />
+        <span class="sr-only">{{ m.materia?.nombre ?? 'Materia' }}: </span>
+        <span class="num">{{ hmm(m.seg) }}</span>
+      </li>
+    </ul>
 
     <SelectorMateria
       v-model:abierto="selectorAbierto"
@@ -606,5 +629,38 @@ const hoyTotal = computed(() => {
 
 .hoy strong {
   color: var(--text-h);
+}
+
+.hoy-materias {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem 0.9rem;
+  width: 100%;
+  margin: -0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+}
+
+.hoy-materias li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hoy-materias .punto {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 </style>

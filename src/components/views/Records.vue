@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { ArrowLeft, ListChecks, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-vue-next'
 import { useEstudioStore, type DatosSesion } from '../../stores/estudio'
 import { capitalizar, clave, fechaLarga, hmm, horasMinutos, MODOS, reloj, sumarDias, type Sesion } from '../../utils/estudio'
@@ -40,6 +40,23 @@ function tituloDia(fecha: string) {
   if (fecha === ayer) return 'Ayer'
   return capitalizar(fechaLarga(fecha))
 }
+
+watch(
+  () => store.edicionPendiente,
+  id => {
+    if (id === null) return
+    store.edicionPendiente = null
+    const sesion = store.sesiones.find(s => s.id === id)
+    if (!sesion) return
+    const indiceDia = grupos.value.findIndex(g => g.fecha === sesion.fecha)
+    if (indiceDia >= diasVisibles.value) {
+      diasVisibles.value = Math.ceil((indiceDia + 1) / DIAS_POR_PAGINA) * DIAS_POR_PAGINA
+    }
+    store.resaltada = id
+    editar(sesion)
+  },
+  { immediate: true },
+)
 
 function nueva() {
   editando.value = null

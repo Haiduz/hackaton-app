@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import {
   claveFecha,
   ETIQUETA_TIPO,
@@ -35,8 +35,6 @@ const props = withDefaults(
   { estudio: () => [] },
 )
 
-const estudioAbierto = ref<number | null>(null)
-
 function estiloEstudio(s: SesionEstudioCalendario) {
   return {
     top: `${((s.inicio - base.value) / 60) * ALTO_HORA}px`,
@@ -46,10 +44,10 @@ function estiloEstudio(s: SesionEstudioCalendario) {
 }
 
 function etiquetaEstudio(s: SesionEstudioCalendario): string {
-  return `Sesión de estudio: ${s.materia}, de ${formatearMinutos(s.inicio)} a ${formatearMinutos(s.fin)}, ${horasMinutos(s.foco)} de foco`
+  return `Sesión de estudio: ${s.materia}, de ${formatearMinutos(s.inicio)} a ${formatearMinutos(s.fin)}, ${horasMinutos(s.foco)} de foco. Abrir registro para editar`
 }
 
-const emit = defineEmits<{ seleccionar: [evento: EventoCalendario] }>()
+const emit = defineEmits<{ seleccionar: [evento: EventoCalendario]; abrirEstudio: [id: number] }>()
 
 const horas = computed(() =>
   Array.from({ length: props.horaFin - props.horaInicio + 1 }, (_, i) => props.horaInicio + i),
@@ -144,12 +142,10 @@ function etiqueta(e: EventoCalendario): string {
             :key="`estudio-${s.id}`"
             type="button"
             class="estudio"
-            :class="{ abierto: estudioAbierto === s.id, invertido: ci >= columnas.length - 2 }"
+            :class="{ invertido: ci >= columnas.length - 2 }"
             :style="estiloEstudio(s)"
             :aria-label="etiquetaEstudio(s)"
-            :aria-expanded="estudioAbierto === s.id"
-            @click="estudioAbierto = estudioAbierto === s.id ? null : s.id"
-            @blur="estudioAbierto === s.id && (estudioAbierto = null)"
+            @click="emit('abrirEstudio', s.id)"
           >
             <span class="estudio-detalle" aria-hidden="true">
               <span class="estudio-materia">
@@ -158,6 +154,7 @@ function etiqueta(e: EventoCalendario): string {
               </span>
               <span>{{ formatearMinutos(s.inicio) }} - {{ formatearMinutos(s.fin) }}</span>
               <span class="estudio-foco">{{ horasMinutos(s.foco) }} de foco</span>
+              <span class="estudio-accion">Clic para editar</span>
             </span>
           </button>
 
@@ -485,6 +482,13 @@ function etiqueta(e: EventoCalendario): string {
 
 .estudio-foco {
   color: var(--text);
+}
+
+.estudio-accion {
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--text);
+  opacity: 0.8;
 }
 
 .ahora {

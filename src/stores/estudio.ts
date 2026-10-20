@@ -10,6 +10,7 @@ export const useEstudioStore = defineStore('estudio', () => {
   const materias: MateriaEstudio[] = MATERIAS_ESTUDIO
   const sesiones = ref<Sesion[]>(generarSesionesMock())
   const resaltada = ref<number | null>(null)
+  const edicionPendiente = ref<number | null>(null)
   let siguienteId = sesiones.value.length + 1
 
   const materiaPorId = computed(() => new Map(materias.map(m => [m.id, m])))
@@ -38,6 +39,10 @@ export const useEstudioStore = defineStore('estudio', () => {
     sesiones.value = sesiones.value.filter(s => s.id !== id)
   }
 
+  function pedirEdicion(id: number) {
+    edicionPendiente.value = id
+  }
+
   function vaciar() {
     sesiones.value = []
   }
@@ -51,12 +56,14 @@ export const useEstudioStore = defineStore('estudio', () => {
     materias,
     sesiones,
     resaltada,
+    edicionPendiente,
     porDia,
     ordenadas,
     materia,
     agregar,
     actualizar,
     eliminar,
+    pedirEdicion,
     vaciar,
     restaurarDemo,
   }
