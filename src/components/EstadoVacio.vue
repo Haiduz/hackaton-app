@@ -3,7 +3,7 @@ withDefaults(
   defineProps<{
     mensaje?: string
   }>(),
-  { mensaje: 'Todavía no elegiste materias. Podés hacerlo en Perfil.' }
+  { mensaje: 'Todavía no elegiste materias.' }
 )
 </script>
 

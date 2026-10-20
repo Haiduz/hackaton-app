@@ -35,9 +35,6 @@ const grupos = computed(() =>
   <section class="arbol" aria-labelledby="tree-title">
     <header class="arbol-header">
       <h3 id="tree-title">Árbol de correlativas</h3>
-      <p class="ayuda">
-        Elegí tu condición en cada materia. Solo las Cursable/Libre o Regular se pueden elegir en Perfil.
-      </p>
     </header>
 
     <p v-if="store.cargando" class="estado">Cargando materias...</p>
@@ -88,12 +85,6 @@ const grupos = computed(() =>
 .arbol-header h3 {
   margin: 0;
   color: var(--text-h);
-}
-
-.ayuda,
-.estado {
-  margin: 0;
-  font-size: 14px;
 }
 
 .estado-error {

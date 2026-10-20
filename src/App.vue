@@ -29,12 +29,12 @@ const activeView = computed(() => views[activeTab.value] ?? Home)
       type="button"
       class="subjects-button"
       :class="{ active: activeTab === 'subjects' }"
-      aria-label="Perfil"
+      aria-label="Materias"
       :aria-current="activeTab === 'subjects' ? 'page' : undefined"
       @click="activeTab = 'subjects'"
     >
       <UserRound :size="20" :stroke-width="1.8" aria-hidden="true" />
-      <span>Perfil</span>
+      <span>Materias</span>
     </button>
   </header>
   <main class="view-container">

@@ -18,7 +18,6 @@ import {
   Timer,
   House,
   CalendarDays,
-  UserRound,
   Network
 } from "lucide-vue-next";
 </script>
@@ -72,13 +71,6 @@ import {
         :size="24"
         :stroke-width="1.8"
       ></ChartNoAxesColumnIncreasing>
-      
-      <!-- Perfil -->
-      <UserRound
-        v-else-if="tab.icon === 'profile'"
-        :size="24"
-        :stroke-width="1.8"
-      ></UserRound>
 
       <span>{{ tab.label }}</span>
     </button>

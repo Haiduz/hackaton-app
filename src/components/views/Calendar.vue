@@ -154,10 +154,7 @@ const superpuestoCon = computed(() => {
   <section class="calendario" aria-labelledby="calendar-title">
     <h3 id="calendar-title" class="sr-only">Calendario</h3>
 
-    <EstadoVacio
-      v-if="!store.seleccionadas.length"
-      mensaje="Todavía no elegiste materias para ver en el calendario. Podés hacerlo en Perfil."
-    />
+    <EstadoVacio v-if="!store.seleccionadas.length"></EstadoVacio>
     <template v-else>
       <div class="barra">
         <div class="navegacion">
