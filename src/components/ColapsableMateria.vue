@@ -2,8 +2,8 @@
 import { computed, onMounted } from 'vue'
 import { useMateriasStore, type Materia } from '../stores/materias'
 import Colapsable from './Colapsable.vue'
-import SeccionHorarios from './secciones/SeccionHorarios.vue'
 import SeccionExamenes from './secciones/SeccionExamenes.vue'
+import SeccionHorarios from './secciones/SeccionHorarios.vue'
 import { calcularRestante, combinarFechaHora, restanteCorto, useAhora } from '../utils/fechas'
 
 const props = defineProps<{

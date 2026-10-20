@@ -3,6 +3,7 @@ import { computed, onUnmounted, ref, watch } from 'vue'
 import { useMateriasStore } from '../../stores/materias'
 import {
   aMinutos,
+  claveFecha,
   detectarConflictos,
   formatearMinutos,
   inicioSemana,
@@ -17,6 +18,7 @@ import AvisoConflictos from '../calendario/AvisoConflictos.vue'
 import CalendarioGrilla from '../calendario/CalendarioGrilla.vue'
 import CalendarioMes from '../calendario/CalendarioMes.vue'
 import DetalleEvento from '../calendario/DetalleEvento.vue'
+import ListaExamenes from '../calendario/ListaExamenes.vue'
 import EstadoVacio from '../EstadoVacio.vue'
 
 type Vista = 'dia' | 'semana' | 'mes'
@@ -66,6 +68,7 @@ const examenes = computed<ExamenCalendario[]>(() =>
       id: e.id,
       materiaId: m.id,
       materia: m.name,
+      tipo: e.tipo,
       titulo: e.titulo,
       clave: e.fecha,
       hora: e.hora,
@@ -73,6 +76,15 @@ const examenes = computed<ExamenCalendario[]>(() =>
     })),
   ),
 )
+
+const examenesVisibles = computed(() => {
+  if (vista.value === 'mes') {
+    const prefijo = claveFecha(fecha.value).slice(0, 7)
+    return examenes.value.filter(e => e.clave.startsWith(prefijo))
+  }
+  const claves = new Set(dias.value.map(d => claveFecha(d.fecha)))
+  return examenes.value.filter(e => claves.has(e.clave))
+})
 
 function abrirDia(dia: Date) {
   fecha.value = dia
@@ -249,6 +261,12 @@ const superpuestoCon = computed(() => {
         :hora-fin="horaFin"
         :ahora="ahora"
         @seleccionar="seleccionado = $event"
+      />
+
+      <ListaExamenes
+        :examenes="examenesVisibles"
+        :titulo="vista === 'mes' ? 'Exámenes del mes' : 'Exámenes de la semana'"
+        :vacio="`No hay exámenes ${vista === 'mes' ? 'este mes' : 'esta semana'}. Podés cargarlos en Inicio, dentro de cada materia.`"
       />
 
       <DetalleEvento

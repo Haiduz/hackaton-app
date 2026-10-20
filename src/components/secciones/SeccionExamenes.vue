@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useMateriasStore } from '../../stores/materias'
+import { useMateriasStore, type TipoExamen } from '../../stores/materias'
+import { ETIQUETA_TIPO } from '../../utils/calendario'
 import {
   calcularRestante,
   combinarFechaHora,
@@ -15,6 +16,8 @@ const props = defineProps<{ materiaId: number }>()
 const store = useMateriasStore()
 const ahora = useAhora()
 
+const tipos = Object.entries(ETIQUETA_TIPO) as [TipoExamen, string][]
+const tipo = ref<TipoExamen>('parcial')
 const titulo = ref('')
 const fecha = ref('')
 const hora = ref('09:00')
@@ -46,11 +49,16 @@ const formato = new Intl.DateTimeFormat('es-AR', {
 function agregar() {
   error.value = validarFechaExamen(fecha.value, hora.value, new Date())
   if (error.value) return
-  store.agregarExamen(props.materiaId, {
-    titulo: titulo.value.trim() || 'Examen',
+  const agregado = store.agregarExamen(props.materiaId, {
+    tipo: tipo.value,
+    titulo: titulo.value.trim() || ETIQUETA_TIPO[tipo.value],
     fecha: fecha.value,
     hora: hora.value,
   })
+  if (!agregado) {
+    error.value = `Ya cargaste un ${ETIQUETA_TIPO[tipo.value].toLowerCase()} para esa fecha.`
+    return
+  }
   titulo.value = ''
   fecha.value = ''
 }
@@ -76,7 +84,7 @@ function agregar() {
           type="button"
           class="quitar"
           :aria-label="`Quitar ${e.titulo}`"
-          @click="store.quitarExamen(materiaId, e.id)"
+          @click="store.quitarExamen(e.id)"
         >
           Quitar
         </button>
@@ -86,7 +94,13 @@ function agregar() {
     <form class="form" @submit.prevent="agregar">
       <fieldset class="campos">
         <legend class="legend">Agregar examen</legend>
-        <label :for="`${uid}-titulo`" class="campo campo--ancho">
+        <label :for="`${uid}-tipo`" class="campo">
+          <span>Tipo</span>
+          <select :id="`${uid}-tipo`" v-model="tipo">
+            <option v-for="[valor, etiqueta] in tipos" :key="valor" :value="valor">{{ etiqueta }}</option>
+          </select>
+        </label>
+        <label :for="`${uid}-titulo`" class="campo">
           <span>Nombre</span>
           <input :id="`${uid}-titulo`" v-model="titulo" type="text" placeholder="Parcial 1" maxlength="60" />
         </label>
@@ -201,7 +215,8 @@ function agregar() {
   flex-basis: 100%;
 }
 
-.campo input {
+.campo input,
+.campo select {
   padding: 0.5rem;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -213,6 +228,7 @@ function agregar() {
 }
 
 .campo input:focus-visible,
+.campo select:focus-visible,
 .agregar:focus-visible,
 .quitar:focus-visible {
   outline: 2px solid var(--accent);

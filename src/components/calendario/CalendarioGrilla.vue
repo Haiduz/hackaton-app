@@ -2,7 +2,9 @@
 import { computed } from 'vue'
 import {
   claveFecha,
+  ETIQUETA_TIPO,
   formatearMinutos,
+  INICIAL_TIPO,
   mismoDia,
   posicionar,
   type EventoCalendario,
@@ -90,7 +92,8 @@ function etiqueta(e: EventoCalendario): string {
               :style="{ '--hue': e.hue }"
               :title="`${e.titulo} - ${e.materia}, ${e.hora}`"
             >
-              <span class="sr-only">Examen: </span>
+              <span class="sr-only">{{ ETIQUETA_TIPO[e.tipo] }}: </span>
+              <strong aria-hidden="true">{{ INICIAL_TIPO[e.tipo] }}</strong>
               {{ e.hora }} {{ e.titulo }} · {{ e.materia }}
             </li>
           </ul>

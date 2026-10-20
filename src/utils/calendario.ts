@@ -1,5 +1,17 @@
-import type { Comision } from '../stores/materias'
+import type { Comision, TipoExamen } from '../stores/materias'
 import { aIsoLocal } from './fechas'
+
+export const ETIQUETA_TIPO: Record<TipoExamen, string> = {
+  parcial: 'Parcial',
+  final: 'Final',
+  recuperatorio: 'Recuperatorio',
+}
+
+export const INICIAL_TIPO: Record<TipoExamen, string> = {
+  parcial: 'P',
+  final: 'F',
+  recuperatorio: 'R',
+}
 
 export interface EventoCalendario {
   id: number
@@ -57,6 +69,7 @@ export interface ExamenCalendario {
   id: number
   materiaId: number
   materia: string
+  tipo: TipoExamen
   titulo: string
   clave: string // YYYY-MM-DD
   hora: string
@@ -72,6 +85,11 @@ export interface DiaMes {
 
 export function claveFecha(fecha: Date): string {
   return aIsoLocal(fecha)
+}
+
+export function desdeClave(clave: string): Date {
+  const [y, m, d] = clave.split('-').map(Number)
+  return new Date(y, m - 1, d)
 }
 
 // Siempre devuelve el día 1, así evita desbordes (31 de enero + 1 mes).

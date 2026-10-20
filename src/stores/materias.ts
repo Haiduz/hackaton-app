@@ -47,12 +47,18 @@ export interface MateriaOverview extends Materia {
   prerequisites: Correlativa[]
 }
 
+export type TipoExamen = 'parcial' | 'final' | 'recuperatorio'
+
 export interface Examen {
   id: number
+  materiaId: number
+  tipo: TipoExamen
   titulo: string
-  fecha: string // YYYY-MM-DD
+  fecha: string // YYYY-MM-DD en hora local
   hora: string // HH:mm
 }
+
+export type NuevoExamen = Pick<Examen, 'tipo' | 'titulo' | 'fecha' | 'hora'>
 
 export type Condicion = 'no_cursable' | 'regular' | 'libre' | 'aprobada'
 
@@ -238,21 +244,29 @@ export const useMateriasStore = defineStore('materias', () => {
     else if (esSeleccionable(materia.id)) seleccionadas.value.push(materia)
   }
 
-  const examenes = ref<Record<number, Examen[]>>({})
+  // La API no publica fechas de parciales ni mesas: las carga el usuario.
+  const examenes = ref<Examen[]>([])
   let siguienteExamenId = 1
 
   function examenesDe(materiaId: number): Examen[] {
-    return examenes.value[materiaId] ?? []
+    return examenes.value
+      .filter(e => e.materiaId === materiaId)
+      .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora))
   }
 
-  function agregarExamen(materiaId: number, datos: Omit<Examen, 'id'>) {
-    const lista = [...examenesDe(materiaId), { ...datos, id: siguienteExamenId++ }]
-    lista.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora))
-    examenes.value[materiaId] = lista
+  // Devuelve false si ya existe un examen del mismo tipo para esa materia en esa fecha.
+  function agregarExamen(materiaId: number, datos: NuevoExamen): boolean {
+    if (!datos.fecha) return false
+    const repetido = examenes.value.some(
+      e => e.materiaId === materiaId && e.tipo === datos.tipo && e.fecha === datos.fecha,
+    )
+    if (repetido) return false
+    examenes.value.push({ ...datos, id: siguienteExamenId++, materiaId })
+    return true
   }
 
-  function quitarExamen(materiaId: number, examenId: number) {
-    examenes.value[materiaId] = examenesDe(materiaId).filter(e => e.id !== examenId)
+  function quitarExamen(id: number) {
+    examenes.value = examenes.value.filter(e => e.id !== id)
   }
 
   return {

@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import {
   claveFecha,
   diasDelMes,
+  ETIQUETA_TIPO,
+  INICIAL_TIPO,
   type EventoCalendario,
   type ExamenCalendario,
 } from '../../utils/calendario'
@@ -80,7 +82,8 @@ const semanas = computed(() => celdas.value.length / 7)
             :style="{ '--hue': e.hue }"
             :title="`${e.titulo} - ${e.materia}, ${e.hora}`"
           >
-            <span class="sr-only">Examen: </span>
+            <span class="sr-only">{{ ETIQUETA_TIPO[e.tipo] }}: </span>
+            <span class="marca" aria-hidden="true">{{ INICIAL_TIPO[e.tipo] }}</span>
             <span class="chip-texto">{{ e.titulo }} · {{ e.materia }}</span>
           </li>
           <li v-if="c.ocultas" class="mas">+{{ c.ocultas }} más</li>
@@ -91,6 +94,12 @@ const semanas = computed(() => celdas.value.length / 7)
 </template>
 
 <style scoped>
+.marca {
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+  font-weight: 700;
+}
+
 .mes {
   border: 1px solid var(--border);
   border-radius: 12px;
