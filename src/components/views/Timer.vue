@@ -344,7 +344,7 @@ const hoyPorMateria = computed(() => {
     <ul v-if="hoyPorMateria.length" class="hoy-materias" aria-label="Foco de hoy por materia">
       <li v-for="m in hoyPorMateria" :key="m.id" :title="m.materia?.nombre">
         <span class="punto" :style="{ background: m.materia?.color ?? 'var(--text)' }" aria-hidden="true" />
-        <span class="sr-only">{{ m.materia?.nombre ?? 'Materia' }}: </span>
+        <span class="nombre-materia">{{ m.materia?.nombre ?? 'Materia' }}</span>
         <span class="num">{{ hmm(m.seg) }}</span>
       </li>
     </ul>
@@ -650,9 +650,21 @@ const hoyPorMateria = computed(() => {
 }
 
 .hoy-materias .punto {
+  flex: none;
   width: 0.55rem;
   height: 0.55rem;
   border-radius: 50%;
+}
+
+.hoy-materias .nombre-materia {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hoy-materias .num {
+  color: var(--text-h);
 }
 
 .sr-only {
