@@ -47,6 +47,22 @@ export interface MateriaOverview extends Materia {
   prerequisites: Correlativa[]
 }
 
+export type Condicion = 'no_cursable' | 'cursable' | 'regular' | 'aprobada'
+
+export const CONDICIONES: { valor: Condicion; etiqueta: string }[] = [
+  { valor: 'no_cursable', etiqueta: 'No cursable' },
+  { valor: 'cursable', etiqueta: 'Cursable/Libre' },
+  { valor: 'regular', etiqueta: 'Regular' },
+  { valor: 'aprobada', etiqueta: 'Aprobada' },
+]
+
+export const CONDICION_POR_DEFECTO: Condicion = 'cursable'
+const CONDICIONES_SELECCIONABLES: Condicion[] = ['cursable', 'regular']
+
+export function etiquetaCondicion(condicion: Condicion) {
+  return CONDICIONES.find(c => c.valor === condicion)?.etiqueta ?? condicion
+}
+
 interface Page<T> {
   items: T[]
   total: number
@@ -124,15 +140,36 @@ export const useMateriasStore = defineStore('materias', () => {
     }
   }
 
+  const condiciones = ref<Record<number, Condicion>>({})
+
+  function condicionDe(id: number): Condicion {
+    return condiciones.value[id] ?? CONDICION_POR_DEFECTO
+  }
+
+  function esSeleccionable(id: number) {
+    return CONDICIONES_SELECCIONABLES.includes(condicionDe(id))
+  }
+
+  function setCondicion(id: number, condicion: Condicion) {
+    condiciones.value[id] = condicion
+    if (!esSeleccionable(id)) {
+      seleccionadas.value = seleccionadas.value.filter(m => m.id !== id)
+    }
+  }
+
   function toggleMateria(materia: Materia) {
     const idx = seleccionadas.value.findIndex(m => m.id === materia.id)
     if (idx >= 0) seleccionadas.value.splice(idx, 1)
-    else seleccionadas.value.push(materia)
+    else if (esSeleccionable(materia.id)) seleccionadas.value.push(materia)
   }
 
   return {
     disponibles,
     seleccionadas,
+    condiciones,
+    condicionDe,
+    esSeleccionable,
+    setCondicion,
     cargando,
     error,
     overviews,

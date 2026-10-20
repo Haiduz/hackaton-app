@@ -14,6 +14,7 @@ import { comisionesUnicas, nombreDia } from '../../utils/horarios'
 import AvisoConflictos from '../calendario/AvisoConflictos.vue'
 import CalendarioGrilla from '../calendario/CalendarioGrilla.vue'
 import DetalleEvento from '../calendario/DetalleEvento.vue'
+import EstadoVacio from '../EstadoVacio.vue'
 
 type Vista = 'semana' | 'dia'
 
@@ -153,9 +154,10 @@ const superpuestoCon = computed(() => {
   <section class="calendario" aria-labelledby="calendar-title">
     <h3 id="calendar-title" class="sr-only">Calendario</h3>
 
-    <p v-if="!store.seleccionadas.length" class="estado">
-      Todavía no elegiste materias. Podés hacerlo en Perfil.
-    </p>
+    <EstadoVacio
+      v-if="!store.seleccionadas.length"
+      mensaje="Todavía no elegiste materias para ver en el calendario. Podés hacerlo en Perfil."
+    />
     <template v-else>
       <div class="barra">
         <div class="navegacion">

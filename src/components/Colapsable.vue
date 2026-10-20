@@ -11,8 +11,9 @@ withDefaults(
     subtitulo?: string
     badge?: string
     variante?: 'anio' | 'cuatrimestre' | 'materia'
+    superado?: boolean
   }>(),
-  { variante: 'materia' }
+  { variante: 'materia', superado: false }
 )
 
 const id = `colapsable-${++contador}`
@@ -20,7 +21,7 @@ const abierto = ref(false)
 </script>
 
 <template>
-  <div class="colapsable" :class="[`colapsable--${variante}`, { abierto }]">
+  <div class="colapsable" :class="[`colapsable--${variante}`, { abierto, superado }]">
     <h4 class="colapsable-titulo">
       <button
         :id="`${id}-btn`"
@@ -31,7 +32,9 @@ const abierto = ref(false)
         @click="abierto = !abierto"
       >
         <span class="colapsable-texto">
-          <span class="colapsable-nombre">{{ titulo }}</span>
+          <span class="colapsable-nombre">
+            {{ titulo }}<span v-if="superado" class="sr-only"> (etapa superada)</span>
+          </span>
           <span v-if="subtitulo" class="colapsable-sub">{{ subtitulo }}</span>
         </span>
         <span v-if="badge" class="colapsable-badge">{{ badge }}</span>
@@ -111,6 +114,21 @@ const abierto = ref(false)
 
 .colapsable--cuatrimestre .colapsable-nombre {
   font-size: 15px;
+}
+
+.superado > .colapsable-titulo .colapsable-nombre {
+  color: var(--text);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .colapsable-sub {
