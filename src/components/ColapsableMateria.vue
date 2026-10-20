@@ -59,11 +59,6 @@ onMounted(() => store.cargarOverview(props.materia.id))
       </section>
 
       <section class="seccion">
-        <h5 class="seccion-titulo">Bibliografía</h5>
-        <div class="seccion-vacia"></div>
-      </section>
-
-      <section class="seccion">
         <h5 class="seccion-titulo">Exámenes</h5>
         <SeccionExamenes :materia-id="materia.id" />
       </section>
@@ -94,9 +89,5 @@ onMounted(() => store.cargarOverview(props.materia.id))
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-h);
-}
-
-.seccion-vacia {
-  min-height: 1.5rem;
 }
 </style>
