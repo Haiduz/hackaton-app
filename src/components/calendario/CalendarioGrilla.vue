@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import {
   claveFecha,
   ETIQUETA_TIPO,
@@ -9,7 +9,9 @@ import {
   posicionar,
   type EventoCalendario,
   type ExamenCalendario,
+  type SesionEstudioCalendario,
 } from '../../utils/calendario'
+import { horasMinutos } from '../../utils/estudio'
 import { nombreDia, textoAula } from '../../utils/horarios'
 
 interface DiaGrilla {
@@ -19,15 +21,33 @@ interface DiaGrilla {
 
 const ALTO_HORA = 56
 
-const props = defineProps<{
-  dias: DiaGrilla[]
-  eventos: EventoCalendario[]
-  conflictoIds: Set<number>
-  examenes: ExamenCalendario[]
-  horaInicio: number
-  horaFin: number
-  ahora: Date
-}>()
+const props = withDefaults(
+  defineProps<{
+    dias: DiaGrilla[]
+    eventos: EventoCalendario[]
+    conflictoIds: Set<number>
+    examenes: ExamenCalendario[]
+    horaInicio: number
+    horaFin: number
+    ahora: Date
+    estudio?: SesionEstudioCalendario[]
+  }>(),
+  { estudio: () => [] },
+)
+
+const estudioAbierto = ref<number | null>(null)
+
+function estiloEstudio(s: SesionEstudioCalendario) {
+  return {
+    top: `${((s.inicio - base.value) / 60) * ALTO_HORA}px`,
+    height: `${Math.max(((s.fin - s.inicio) / 60) * ALTO_HORA - 2, 6)}px`,
+    '--color': s.color,
+  }
+}
+
+function etiquetaEstudio(s: SesionEstudioCalendario): string {
+  return `Sesión de estudio: ${s.materia}, de ${formatearMinutos(s.inicio)} a ${formatearMinutos(s.fin)}, ${horasMinutos(s.foco)} de foco`
+}
 
 const emit = defineEmits<{ seleccionar: [evento: EventoCalendario] }>()
 
@@ -45,6 +65,7 @@ const columnas = computed(() =>
       .filter(e => e.clave === claveFecha(dia.fecha))
       .sort((a, b) => a.hora.localeCompare(b.hora)),
     eventos: posicionar(props.eventos.filter(e => e.weekday === dia.weekday)),
+    estudio: props.estudio.filter(s => s.clave === claveFecha(dia.fecha)),
   })),
 )
 
@@ -55,12 +76,12 @@ const lineaAhoraVisible = computed(
 const topAhora = computed(() => ((minutosAhora.value - base.value) / 60) * ALTO_HORA)
 
 function estilo(e: { inicio: number; fin: number; columna: number; columnas: number; hue: number }) {
-  const ancho = 100 / e.columnas
+  const util = '(100% - var(--franja, 0px))'
   return {
     top: `${((e.inicio - base.value) / 60) * ALTO_HORA}px`,
     height: `${((e.fin - e.inicio) / 60) * ALTO_HORA - 2}px`,
-    left: `calc(${e.columna * ancho}% + 2px)`,
-    width: `calc(${ancho}% - 5px)`,
+    left: `calc(var(--franja, 0px) + ${util} * ${e.columna / e.columnas} + 2px)`,
+    width: `calc(${util} / ${e.columnas} - 5px)`,
     '--hue': e.hue,
   }
 }
@@ -78,7 +99,7 @@ function etiqueta(e: EventoCalendario): string {
     role="group"
     aria-label="Horarios semanales"
   >
-    <div class="interna" :class="{ multiple: dias.length > 1 }">
+    <div class="interna" :class="{ multiple: dias.length > 1, 'con-estudio': estudio.length > 0 }">
       <div class="cabecera">
         <div class="gutter" />
         <div v-for="c in columnas" :key="c.weekday" class="cab-dia" :class="{ hoy: c.esHoy }">
@@ -112,7 +133,34 @@ function etiqueta(e: EventoCalendario): string {
           </span>
         </div>
 
-        <div v-for="c in columnas" :key="c.weekday" class="columna" :class="{ hoy: c.esHoy }">
+        <div
+          v-for="(c, ci) in columnas"
+          :key="c.weekday"
+          class="columna"
+          :class="{ hoy: c.esHoy }"
+        >
+          <button
+            v-for="s in c.estudio"
+            :key="`estudio-${s.id}`"
+            type="button"
+            class="estudio"
+            :class="{ abierto: estudioAbierto === s.id, invertido: ci >= columnas.length - 2 }"
+            :style="estiloEstudio(s)"
+            :aria-label="etiquetaEstudio(s)"
+            :aria-expanded="estudioAbierto === s.id"
+            @click="estudioAbierto = estudioAbierto === s.id ? null : s.id"
+            @blur="estudioAbierto === s.id && (estudioAbierto = null)"
+          >
+            <span class="estudio-detalle" aria-hidden="true">
+              <span class="estudio-materia">
+                <span class="punto" />
+                {{ s.materia }}
+              </span>
+              <span>{{ formatearMinutos(s.inicio) }} - {{ formatearMinutos(s.fin) }}</span>
+              <span class="estudio-foco">{{ horasMinutos(s.foco) }} de foco</span>
+            </span>
+          </button>
+
           <button
             v-for="e in c.eventos"
             :key="e.id"
@@ -353,6 +401,90 @@ function etiqueta(e: EventoCalendario): string {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.con-estudio {
+  --franja: 7px;
+}
+
+.estudio {
+  position: absolute;
+  left: 2px;
+  width: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: var(--color);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.estudio::before {
+  content: '';
+  position: absolute;
+  inset: 0 -3px;
+}
+
+.estudio:focus-visible {
+  outline: 2px solid var(--text-h);
+  outline-offset: 1px;
+}
+
+.estudio-detalle {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 6px);
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--color);
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.25);
+  color: var(--text-h);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: left;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.estudio.invertido .estudio-detalle {
+  left: auto;
+  right: calc(100% + 6px);
+}
+
+.estudio:hover,
+.estudio:focus-visible,
+.estudio.abierto {
+  z-index: 5;
+}
+
+.estudio:hover .estudio-detalle,
+.estudio:focus-visible .estudio-detalle,
+.estudio.abierto .estudio-detalle {
+  display: flex;
+}
+
+.estudio-materia {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color);
+}
+
+.estudio-foco {
+  color: var(--text);
 }
 
 .ahora {

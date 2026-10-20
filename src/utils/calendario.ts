@@ -24,6 +24,16 @@ export interface EventoCalendario {
   comision: Comision
 }
 
+export interface SesionEstudioCalendario {
+  id: number
+  clave: string
+  inicio: number
+  fin: number
+  foco: number
+  materia: string
+  color: string
+}
+
 export interface EventoPosicionado extends EventoCalendario {
   columna: number
   columnas: number

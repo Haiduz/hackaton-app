@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
+import { useEstudioStore } from '../../stores/estudio'
 import { useMateriasStore } from '../../stores/materias'
 import {
   aMinutos,
@@ -12,6 +13,7 @@ import {
   weekdayDe,
   type EventoCalendario,
   type ExamenCalendario,
+  type SesionEstudioCalendario,
 } from '../../utils/calendario'
 import { nombreDia, sesionesVigentes } from '../../utils/horarios'
 import AvisoConflictos from '../calendario/AvisoConflictos.vue'
@@ -100,14 +102,45 @@ const dias = computed(() => {
   }))
 })
 
+const estudio = useEstudioStore()
+
+const sesionesEstudio = computed<SesionEstudioCalendario[]>(() => {
+  if (vista.value !== 'semana') return []
+  const claves = new Set(dias.value.map(d => claveFecha(d.fecha)))
+  return estudio.sesiones
+    .filter(s => claves.has(s.fecha) && s.fin > s.inicio)
+    .map(s => {
+      const materia = estudio.materia(s.materiaId)
+      return {
+        id: s.id,
+        clave: s.fecha,
+        inicio: s.inicio,
+        fin: s.fin,
+        foco: s.foco,
+        materia: materia?.nombre ?? 'Materia',
+        color: materia?.color ?? '#888888',
+      }
+    })
+})
+
+const leyendaEstudio = computed(() => {
+  const vistas = new Map<string, string>()
+  sesionesEstudio.value.forEach(s => vistas.set(s.materia, s.color))
+  return [...vistas]
+    .map(([materia, color]) => ({ materia, color }))
+    .sort((a, b) => a.materia.localeCompare(b.materia))
+})
+
+const bloques = computed(() => [...eventos.value, ...sesionesEstudio.value])
+
 const horaInicio = computed(() =>
-  eventos.value.length
-    ? Math.max(0, Math.floor(Math.min(...eventos.value.map(e => e.inicio)) / 60) - 1)
+  bloques.value.length
+    ? Math.max(0, Math.floor(Math.min(...bloques.value.map(e => e.inicio)) / 60) - 1)
     : 8,
 )
 const horaFin = computed(() =>
-  eventos.value.length
-    ? Math.min(24, Math.ceil(Math.max(...eventos.value.map(e => e.fin)) / 60) + 1)
+  bloques.value.length
+    ? Math.min(24, Math.ceil(Math.max(...bloques.value.map(e => e.fin)) / 60) + 1)
     : 20,
 )
 
@@ -193,8 +226,6 @@ const superpuestoCon = computed(() => {
   <section class="calendario" aria-labelledby="calendar-title">
     <h3 id="calendar-title" class="sr-only">Calendario</h3>
 
-    <EstadoVacio v-if="!store.seleccionadas.length"></EstadoVacio>
-    <template v-else>
       <div class="barra">
         <div class="navegacion">
           <button type="button" class="boton" @click="fecha = new Date()">Hoy</button>
@@ -239,7 +270,14 @@ const superpuestoCon = computed(() => {
       <p v-if="errores.length" class="estado estado-error">
         No se pudieron cargar los horarios de: {{ errores.join(', ') }}
       </p>
-      <p v-if="!cargando && !eventos.length && !errores.length" class="estado">
+      <EstadoVacio
+        v-if="!store.seleccionadas.length"
+        mensaje="Todavía no elegiste materias. Elegilas en Inicio para ver sus horarios."
+      />
+      <p
+        v-else-if="!cargando && !eventos.length && !errores.length"
+        class="estado"
+      >
         Tus materias no tienen horarios publicados.
       </p>
 
@@ -260,8 +298,19 @@ const superpuestoCon = computed(() => {
         :hora-inicio="horaInicio"
         :hora-fin="horaFin"
         :ahora="ahora"
+        :estudio="sesionesEstudio"
         @seleccionar="seleccionado = $event"
       />
+
+      <div v-if="leyendaEstudio.length" class="leyenda">
+        <span class="leyenda-titulo">Estudiaste esta semana</span>
+        <ul>
+          <li v-for="l in leyendaEstudio" :key="l.materia" :style="{ '--color': l.color }">
+            <span class="leyenda-barra" aria-hidden="true" />
+            {{ l.materia }}
+          </li>
+        </ul>
+      </div>
 
       <ListaExamenes
         :examenes="examenesVisibles"
@@ -275,7 +324,6 @@ const superpuestoCon = computed(() => {
         :superpuesto-con="superpuestoCon"
         @cerrar="seleccionado = null"
       />
-    </template>
   </section>
 </template>
 
@@ -305,6 +353,41 @@ const superpuestoCon = computed(() => {
 
 .estado-error {
   color: #e5484d;
+}
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  font-size: 12px;
+}
+
+.leyenda-titulo {
+  color: var(--text);
+}
+
+.leyenda ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leyenda li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-h);
+}
+
+.leyenda-barra {
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--color);
 }
 
 .barra {

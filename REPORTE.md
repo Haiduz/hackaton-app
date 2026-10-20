@@ -90,6 +90,15 @@ Archivos de soporte:
 | `src/composables/useAncho.ts` | Medición del ancho de los contenedores de los gráficos. |
 | `src/style.css` | Estilos globales y variables de los nuevos componentes. |
 
+## Calendario: siempre activo y sesiones de estudio
+
+- El calendario se muestra aunque no haya materias elegidas; en ese caso aparece un aviso que invita a elegirlas en Inicio.
+- En la vista **Semana** se dibujan todas las sesiones de estudio registradas como una barra vertical fina pegada a la izquierda de cada día, con el color Okabe-Ito de la materia (el mismo que el fueguito y las estadísticas).
+- Cuando hay sesiones, cada día reserva una franja de 7px a la izquierda y los horarios de cursada se corren para no quedar tapados.
+- Al pasar el cursor, enfocar o hacer clic sobre una barra se ve el detalle: materia, hora de inicio y fin, y tiempo de foco. En los dos últimos días el detalle se abre hacia la izquierda para que no se corte.
+- Debajo de la grilla hay una leyenda con las materias estudiadas en la semana visible.
+- El rango de horas de la grilla tiene en cuenta también las sesiones de estudio.
+
 ## 11. Cómo cambiar valores clave
 
 | Qué | Dónde |
