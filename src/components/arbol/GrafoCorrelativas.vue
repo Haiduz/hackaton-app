@@ -100,7 +100,7 @@ const edges = computed<Edge[]>(() =>
       const foco = enfocadaId.value
       const activa = foco !== null && (materia.id === foco || origen === foco)
       const color = activa ? 'var(--accent)' : 'var(--text)'
-      const libre = store.condicionElegida(origen) === 'libre'
+      const libre = store.condicionDe(origen) === 'libre'
       return {
         id: `${origen}-${materia.id}`,
         source: String(origen),

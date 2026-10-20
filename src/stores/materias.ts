@@ -63,8 +63,23 @@ export const CONDICIONES: { valor: Condicion; etiqueta: string }[] = [
   { valor: 'aprobada', etiqueta: 'Aprobada' },
 ]
 
-// Condición inicial de toda materia, salvo las que estén en CUATRIMESTRE_INICIAL.
+// "No cursable" nunca se elige: se deriva de las correlativas.
+export type CondicionElegible = Exclude<Condicion, 'no_cursable'>
+
+export const CONDICIONES_ELEGIBLES = CONDICIONES.filter(
+  (c): c is { valor: CondicionElegible; etiqueta: string } => c.valor !== 'no_cursable',
+)
+
+export type MotivoBloqueo = 'libre' | 'correlativas'
+
+// Condición de toda materia con correlativas sin cumplir (y mientras no se carguen), salvo las de CUATRIMESTRE_INICIAL.
 export const CONDICION_POR_DEFECTO: Condicion = 'no_cursable'
+
+// Condición que toma una materia cuando todas sus correlativas están al menos en Regular.
+export const CONDICION_DESBLOQUEADA: CondicionElegible = 'libre'
+
+// Condiciones de una correlativa que habilitan a sus siguientes ("al menos Regular").
+const CONDICIONES_QUE_HABILITAN: Condicion[] = ['regular', 'aprobada']
 
 // Materias que arrancan con otra condición (por defecto: 1º año, 1º cuatrimestre).
 export const CUATRIMESTRE_INICIAL = { year: 1, term: 1 }
@@ -125,6 +140,9 @@ export const useMateriasStore = defineStore('materias', () => {
     } finally {
       cargando.value = false
     }
+
+    // Las correlativas determinan qué materias están habilitadas, así que se cargan sin importar la pestaña.
+    void cargarOverviews(disponibles.value.map(m => m.id))
   }
 
   const overviews = ref<Record<number, MateriaOverview>>({})
@@ -153,7 +171,7 @@ export const useMateriasStore = defineStore('materias', () => {
     }
   }
 
-  const condiciones = ref<Record<number, Condicion>>({})
+  const condiciones = ref<Record<number, CondicionElegible>>({})
 
   async function cargarOverviews(ids: number[]) {
     await Promise.all(ids.map(cargarOverview))
@@ -163,32 +181,53 @@ export const useMateriasStore = defineStore('materias', () => {
     return overviews.value[id]?.prerequisites.map(p => p.id) ?? []
   }
 
-  function condicionInicial(id: number): Condicion {
+  // Solo cuentan las correlativas que forman parte de las materias del árbol.
+  function prerequisitosRastreables(id: number): number[] {
+    return prerequisitosDe(id).filter(p => disponibles.value.some(m => m.id === p))
+  }
+
+  function esInicial(id: number) {
     const materia = disponibles.value.find(m => m.id === id)
-    const esInicial =
-      materia?.year === CUATRIMESTRE_INICIAL.year && materia?.term === CUATRIMESTRE_INICIAL.term
-    return esInicial ? CONDICION_CUATRIMESTRE_INICIAL : CONDICION_POR_DEFECTO
+    return materia?.year === CUATRIMESTRE_INICIAL.year && materia?.term === CUATRIMESTRE_INICIAL.term
   }
 
-  function condicionElegida(id: number): Condicion {
-    return condiciones.value[id] ?? condicionInicial(id)
+  const enCalculo = new Set<number>()
+
+  // Motivo por el que la materia está "No cursable"; null si no lo está.
+  function motivoBloqueo(id: number): MotivoBloqueo | null {
+    if (condiciones.value[id] === 'aprobada') return null
+    if (!overviews.value[id]) return esInicial(id) ? null : 'correlativas'
+    if (enCalculo.has(id)) return 'correlativas'
+
+    enCalculo.add(id)
+    try {
+      const condicionesPrevias = prerequisitosRastreables(id).map(condicionDe)
+      if (condicionesPrevias.includes('libre')) return 'libre'
+      if (condicionesPrevias.some(c => !CONDICIONES_QUE_HABILITAN.includes(c))) return 'correlativas'
+      return null
+    } finally {
+      enCalculo.delete(id)
+    }
   }
 
-  // Una materia queda "No cursable" si alguna de sus correlativas directas está en condición Libre.
   function bloqueadaPorLibre(id: number) {
-    if (condicionElegida(id) === 'aprobada') return false
-    return prerequisitosDe(id).some(p => condicionElegida(p) === 'libre')
+    return motivoBloqueo(id) === 'libre'
   }
 
+  // Sin bloqueo, la materia toma lo que eligió el usuario o su condición automática.
   function condicionDe(id: number): Condicion {
-    return bloqueadaPorLibre(id) ? 'no_cursable' : condicionElegida(id)
+    if (motivoBloqueo(id)) return 'no_cursable'
+    return (
+      condiciones.value[id] ?? (esInicial(id) ? CONDICION_CUATRIMESTRE_INICIAL : CONDICION_DESBLOQUEADA)
+    )
   }
 
   function esSeleccionable(id: number) {
     return CONDICIONES_SELECCIONABLES.includes(condicionDe(id))
   }
 
-  function setCondicion(id: number, condicion: Condicion) {
+  function setCondicion(id: number, condicion: CondicionElegible) {
+    if (motivoBloqueo(id)) return
     condiciones.value[id] = condicion
     seleccionadas.value = seleccionadas.value.filter(m => esSeleccionable(m.id))
   }
@@ -225,7 +264,7 @@ export const useMateriasStore = defineStore('materias', () => {
     seleccionadas,
     condiciones,
     condicionDe,
-    condicionElegida,
+    motivoBloqueo,
     bloqueadaPorLibre,
     prerequisitosDe,
     esSeleccionable,

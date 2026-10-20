@@ -12,7 +12,7 @@ const props = defineProps<{
 const store = useMateriasStore()
 
 const condicion = computed(() => store.condicionDe(props.data.materia.id))
-const bloqueadaPorLibre = computed(() => store.bloqueadaPorLibre(props.data.materia.id))
+const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
 </script>
 
 <template>
@@ -36,7 +36,8 @@ const bloqueadaPorLibre = computed(() => store.bloqueadaPorLibre(props.data.mate
 
     <span class="estado">
       {{ etiquetaCondicion(condicion) }}
-      <span v-if="bloqueadaPorLibre" class="sr-only"> (bloqueada porque una correlativa está en condición Libre)</span>
+      <span v-if="motivo === 'libre'" class="sr-only"> (bloqueada porque una correlativa está en condición Libre)</span>
+      <span v-else-if="motivo === 'correlativas'" class="sr-only"> (bloqueada porque faltan correlativas Regulares)</span>
     </span>
 
     <Handle type="source" :position="Position.Right" :connectable="false" />

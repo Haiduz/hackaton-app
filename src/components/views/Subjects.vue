@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { CONDICIONES, useMateriasStore, type Condicion, type Materia } from '../../stores/materias.ts'
+import {
+  CONDICIONES_ELEGIBLES,
+  useMateriasStore,
+  type CondicionElegible,
+  type Materia,
+  type MotivoBloqueo,
+} from '../../stores/materias.ts'
 import { agruparPorAnioYCuatrimestre, tituloAnio, tituloCuatrimestre } from '../../utils/agrupar'
 import Colapsable from '../Colapsable.vue'
 
@@ -16,7 +22,11 @@ function estaAprobada(materia: Materia) {
 }
 
 function cambiarCondicion(materia: Materia, event: Event) {
-  store.setCondicion(materia.id, (event.target as HTMLSelectElement).value as Condicion)
+  store.setCondicion(materia.id, (event.target as HTMLSelectElement).value as CondicionElegible)
+}
+
+function textoBloqueo(motivo: MotivoBloqueo | null) {
+  return motivo === 'libre' ? 'Una correlativa está en Libre' : 'Faltan correlativas al menos Regulares'
 }
 
 function todasAprobadas(materias: Materia[]) {
@@ -101,14 +111,15 @@ function contadorTexto(cantidad: number) {
                     class="selector"
                     :data-condicion="store.condicionDe(m.id)"
                     :value="store.condicionDe(m.id)"
-                    :disabled="store.bloqueadaPorLibre(m.id)"
-                    :aria-describedby="store.bloqueadaPorLibre(m.id) ? `bloqueo-${m.id}` : undefined"
+                    :disabled="!!store.motivoBloqueo(m.id)"
+                    :aria-describedby="store.motivoBloqueo(m.id) ? `bloqueo-${m.id}` : undefined"
                     @change="cambiarCondicion(m, $event)"
                   >
-                    <option v-for="c in CONDICIONES" :key="c.valor" :value="c.valor">{{ c.etiqueta }}</option>
+                    <option v-if="store.motivoBloqueo(m.id)" value="no_cursable" disabled>No cursable</option>
+                    <option v-for="c in CONDICIONES_ELEGIBLES" :key="c.valor" :value="c.valor">{{ c.etiqueta }}</option>
                   </select>
-                  <small v-if="store.bloqueadaPorLibre(m.id)" :id="`bloqueo-${m.id}`" class="bloqueo">
-                    Una correlativa está en Libre
+                  <small v-if="store.motivoBloqueo(m.id)" :id="`bloqueo-${m.id}`" class="bloqueo">
+                    {{ textoBloqueo(store.motivoBloqueo(m.id)) }}
                   </small>
                 </div>
               </div>
