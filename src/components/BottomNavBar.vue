@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
-
-const activeTab = ref("inicio");
+const activeTab = defineModel<string>({ default: "inicio" });
 
 const tabs = [
+  { id: "tree", label: "Arbol", icon: "tree" },
+  { id: "calendar", label: "Calendario", icon: "calendar" },
   { id: "inicio", label: "Inicio", icon: "home" },
   { id: "timer", label: "Pomodoro", icon: "timer" },
-  { id: "tree", label: "Arbol", icon: "tree" },
   { id: "stats", label: "Stats", icon: "stats" },
-  { id: "calendar", label: "Calendario", icon: "calendar" },
-  { id: "profile", label: "Perfil", icon: "profile" },
 ];
 
 function selectTab(id: string) {
@@ -21,7 +18,6 @@ import {
   Timer,
   House,
   CalendarDays,
-  UserRound,
   Network
 } from "lucide-vue-next";
 </script>
@@ -32,18 +28,23 @@ import {
       v-for="tab in tabs"
       :key="tab.id"
       class="nav-item"
-      :class="{ active: activeTab === tab.id }"
+      :class="{ 
+        active: activeTab === tab.id, 
+        'nav-item-highlight': tab.id === 'inicio' 
+      }"
       :aria-label="tab.label"
       :aria-current="activeTab === tab.id ? 'page' : undefined"
       @click="selectTab(tab.id)"
     >
-      <!-- Inicio -->
-      <House v-if="tab.icon === 'home'"
-      :size="24"
+    
+    <!-- Inicio -->
+    <House 
+      v-if="tab.icon === 'home'"
+      :size="tab.id === 'inicio' ? 26 : 24"
       :stroke-width="1.8"
-      ></House>
-
-      <!-- Pomodoro -->
+    ></House>
+    
+    <!-- Pomodoro -->
       <Timer
         v-else-if="tab.icon === 'timer'"
         :size="24"
@@ -70,13 +71,6 @@ import {
         :size="24"
         :stroke-width="1.8"
       ></ChartNoAxesColumnIncreasing>
-      
-      <!-- Perfil -->
-      <UserRound
-        v-else-if="tab.icon === 'profile'"
-        :size="24"
-        :stroke-width="1.8"
-      ></UserRound>
 
       <span>{{ tab.label }}</span>
     </button>
@@ -120,6 +114,7 @@ import {
   font-size: 10px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease;
 }
 
 .nav-item svg {
@@ -138,9 +133,26 @@ import {
   font-weight: 600;
 }
 
-.nav-item:focus-visible {
-  outline: 2px solid #0095f6;
-  outline-offset: -4px;
-  border-radius: 8px;
+/* Estilo de realce para el botón de Inicio */
+.nav-item-highlight {
+  position: relative;
 }
+
+/* Opcional: Estilo de burbuja elevada flotante (descomenta si prefieres estilo flotante clásico estilo app moderna) */
+
+
+.nav-item-highlight svg {
+  background-color: #000;
+  color: #fff;
+  padding: 10px;
+  border-radius: 10%;
+  width: 44px;
+  height: 44px;
+  box-sizing: content-box;
+}
+.nav-item-highlight.active span {
+  font-weight: 700;
+  color: #000;
+} 
+
 </style>
