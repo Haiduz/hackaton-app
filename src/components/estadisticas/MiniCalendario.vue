@@ -7,7 +7,7 @@ import {
 } from '../../utils/estudio'
 
 const SEMANAS = 18
-const DIAS_FILA = ['Lun', '', 'Mié', '', 'Vie', '', '']
+const DIAS_FILA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 const INICIALES = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
 const store = useEstudioStore()
@@ -18,12 +18,21 @@ const hoyClave = clave(hoy)
 
 const columnas = computed(() => {
   const primera = sumarDias(inicioSemana(hoy), -(SEMANAS - 1) * 7)
-  let mesPrevio = -1
+  const etiquetas = Array.from({ length: SEMANAS }, (_, s) => {
+    const lunes = sumarDias(primera, s * 7)
+    for (let d = 0; d < 7; d++) {
+      const fecha = sumarDias(lunes, d)
+      if (fecha.getDate() === 1) return MESES_CORTOS[fecha.getMonth()]
+    }
+    return ''
+  })
+  // La primera columna lleva su mes solo si hay lugar antes de la siguiente etiqueta.
+  const siguiente = etiquetas.findIndex((e, i) => i > 0 && e !== '')
+  if (etiquetas[0] === '' && siguiente >= 3) etiquetas[0] = MESES_CORTOS[primera.getMonth()]
+
   return Array.from({ length: SEMANAS }, (_, s) => {
     const lunes = sumarDias(primera, s * 7)
-    const mes = lunes.getMonth()
-    const etiqueta = mes !== mesPrevio ? MESES_CORTOS[mes] : ''
-    mesPrevio = mes
+    const etiqueta = etiquetas[s]
     const dias = Array.from({ length: 7 }, (_, d) => {
       const fecha = sumarDias(lunes, d)
       const k = clave(fecha)
@@ -211,17 +220,18 @@ const mensajeRacha = computed(() => {
 }
 
 .cuerpo {
-  --lado: 0.8rem;
   --hueco: 3px;
+  --meses-alto: 0.85rem;
+  --meses-gap: 0.4rem;
   display: flex;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
 .dias {
   display: grid;
   grid-template-rows: repeat(7, minmax(0, 1fr));
   gap: var(--hueco);
-  padding-top: 1.1rem;
+  padding-top: calc(var(--meses-alto) + var(--meses-gap));
   font-size: 0.62rem;
 }
 
@@ -235,14 +245,16 @@ const mensajeRacha = computed(() => {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--meses-gap);
   min-width: 0;
 }
 
 .meses {
   display: grid;
   grid-template-columns: repeat(var(--semanas), minmax(0, 1fr));
-  height: 0.85rem;
+  column-gap: var(--hueco);
+  align-items: end;
+  height: var(--meses-alto);
   font-size: 0.62rem;
   line-height: 1;
 }
