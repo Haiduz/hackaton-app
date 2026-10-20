@@ -69,33 +69,38 @@ const bloques = computed(() =>
       />
     </section>
 
-    <template v-if="dia.total > 0">
-      <section class="tarjeta" aria-labelledby="titulo-linea">
-        <h3 id="titulo-linea" class="tarjeta-titulo">Sesiones del día</h3>
-        <div class="linea-tiempo" aria-hidden="true">
-          <span
-            v-for="b in bloques"
-            :key="b.s.id"
-            class="bloque"
-            :style="{ left: `${b.izquierda}%`, width: `${b.ancho}%`, background: b.materia?.color }"
-          />
-        </div>
-        <div class="horas" aria-hidden="true"><span>0:00</span><span>6:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
-        <ul class="sesiones">
-          <li v-for="b in bloques" :key="b.s.id">
-            <span class="punto-materia" :style="{ background: b.materia?.color }" aria-hidden="true" />
-            <span class="nombre">{{ b.materia?.nombre }}</span>
-            <span class="modo">{{ MODOS[b.s.modo] }}</span>
-            <span class="num horario">{{ reloj(b.s.inicio) }}–{{ reloj(b.s.fin) }}</span>
-            <strong class="num">{{ hmm(b.s.foco) }}</strong>
-          </li>
-        </ul>
-      </section>
+    <template v-if="dia.total > 0" class="">
+      <div v-if="dia.total > 0" class="resumen-dia">
+        <section class="tarjeta" aria-labelledby="titulo-linea">
+          <h3 id="titulo-linea" class="tarjeta-titulo">Sesiones del día</h3>
+          <div class="linea-tiempo" aria-hidden="true">
+            <span
+              v-for="b in bloques"
+              :key="b.s.id"
+              class="bloque"
+              :style="{ left: `${b.izquierda}%`, width: `${b.ancho}%`, background: b.materia?.color }"
+            />
+          </div>
+          <div class="horas" aria-hidden="true">
+            <span>0:00</span><span>6:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
+          </div>
+          <ul class="sesiones">
+            <li v-for="b in bloques" :key="b.s.id">
+              <span class="punto-materia" :style="{ background: b.materia?.color }" aria-hidden="true" />
+              <span class="nombre">{{ b.materia?.nombre }}</span>
+              <span class="modo">{{ MODOS[b.s.modo] }}</span>
+              <span class="num horario">{{ reloj(b.s.inicio) }}–{{ reloj(b.s.fin) }}</span>
+              <strong class="num">{{ hmm(b.s.foco) }}</strong>
+            </li>
+          </ul>
+        </section>
 
-      <section class="tarjeta" aria-labelledby="titulo-dona-dia">
-        <h3 id="titulo-dona-dia" class="tarjeta-titulo">Proporción por materia</h3>
-        <GraficoDona :items="porMateria" />
-      </section>
+        <section class="tarjeta" aria-labelledby="titulo-dona-dia">
+          <h3 id="titulo-dona-dia" class="tarjeta-titulo">Proporción por materia</h3>
+          <GraficoDona :items="porMateria" />
+        </section>
+
+      </div>
     </template>
     <p v-else class="tarjeta vacio">No hay tiempo de foco registrado este día.</p>
   </div>
@@ -217,5 +222,27 @@ hr {
   margin: 0;
   text-align: center;
   font-size: 0.9rem;
+}
+
+.resumen-dia {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .resumen-dia {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tarjeta > :last-child {
+  flex: 1;
 }
 </style>

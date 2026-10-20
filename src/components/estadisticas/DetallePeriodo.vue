@@ -3,8 +3,6 @@ import { computed } from 'vue'
 import { useEstudioStore } from '../../stores/estudio'
 import { acumular, clave, DIAS_CORTOS, DIAS_LARGOS, desdeClave, fechaCorta, hmmss } from '../../utils/estudio'
 import GraficoComparacion from './GraficoComparacion.vue'
-import GraficoHorario from './GraficoHorario.vue'
-import GraficoDispersion from './GraficoDispersion.vue'
 import GraficoBarrasMateria from './GraficoBarrasMateria.vue'
 import GraficoDona from './GraficoDona.vue'
 import GraficoAreaAcumulada from './GraficoAreaAcumulada.vue'
@@ -48,12 +46,7 @@ const textoCorte = computed(() => {
   return props.tipo === 'semana' ? `Hasta el ${DIAS_LARGOS[corte.value]}` : `Hasta el día ${corte.value + 1}`
 })
 
-const horario = computed(() =>
-  props.dias.map((k, i) => {
-    const r = resumenes.value[i]
-    return { etiqueta: etiqueta(k, i), total: r?.total ?? 0, inicio: r?.inicio ?? null, fin: r?.fin ?? null }
-  }),
-)
+
 
 const porDiaMateria = computed(() =>
   props.dias.map((k, i) => ({ etiqueta: etiqueta(k, i), porMateria: resumenes.value[i]?.porMateria ?? {} })),
@@ -74,9 +67,7 @@ const dona = computed(() =>
   materiasActivas.value.map(m => ({ id: m.id, nombre: m.nombre, color: m.color, valor: totalesMateria.value[m.id] })),
 )
 
-const dispersion = computed(() =>
-  resumenes.value.flatMap(r => (r && r.inicio !== null && r.fin !== null ? [{ inicio: r.inicio, fin: r.fin, total: r.total }] : [])),
-)
+
 </script>
 
 <template>
@@ -104,15 +95,6 @@ const dispersion = computed(() =>
     </section>
 
     <template v-if="total > 0">
-      <section class="tarjeta" aria-labelledby="titulo-horario">
-        <h3 id="titulo-horario" class="tarjeta-titulo">Horas por día e inicio/fin</h3>
-        <GraficoHorario :dias="horario" :con-etiquetas="tipo === 'semana'" :indices-etiqueta="indicesEtiqueta" />
-      </section>
-
-      <section v-if="tipo === 'mes' && dispersion.length" class="tarjeta" aria-labelledby="titulo-dispersion">
-        <h3 id="titulo-dispersion" class="tarjeta-titulo">Distribución de horario de inicio y fin</h3>
-        <GraficoDispersion :puntos="dispersion" />
-      </section>
 
       <div class="par">
         <section class="tarjeta" aria-labelledby="titulo-dona">
