@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, provide, ref, type Component } from "vue";
-import { UserRound } from "lucide-vue-next";
+import { BookText } from "lucide-vue-next";
 import bottomNavigation from "./components/BottomNavBar.vue";
 import Home from "./components/views/Home.vue";
 import Timer from "./components/views/Timer.vue";
@@ -40,7 +40,7 @@ provide("navegar", (tab: string) => {
       :aria-current="activeTab === 'subjects' ? 'page' : undefined"
       @click="activeTab = 'subjects'"
     >
-      <UserRound :size="20" :stroke-width="1.8" aria-hidden="true" />
+      <BookText :size="20" :stroke-width="1.8" aria-hidden="true" />
       <span>Materias</span>
     </button>
   </header>

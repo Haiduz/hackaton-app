@@ -44,10 +44,6 @@ function etiqueta(condicion: Condicion) {
           {{ etiqueta(c) }}
           <span class="cantidad">{{ resumen[c] }}</span>
         </li>
-        <li class="nota">
-          <span class="muestra-libre" aria-hidden="true"></span>
-          Flecha punteada: correlativa Libre
-        </li>
       </ul>
     </header>
 
