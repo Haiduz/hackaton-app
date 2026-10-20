@@ -1,20 +1,20 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
+  --text: #5c574d;
+  --text-h: #1c1a16;
   --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
+  --border: #e7e2d6;
+  --code-bg: #f5f1e6;
+  --accent: #8f7115;
+  --accent-bg: rgba(191, 152, 40, 0.14);
+  --accent-border: rgba(160, 126, 26, 0.5);
+  --social-bg: rgba(245, 241, 230, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
   --on-accent: #fff;
   --peligro: #c62828;
-  --surface: #f7f6f9;
-  --calor-0: #f1f0f3;
+  --surface: #faf7ef;
+  --calor-0: #f1ede3;
   --calor-1: color-mix(in srgb, var(--accent) 14%, var(--bg));
   --calor-2: color-mix(in srgb, var(--accent) 30%, var(--bg));
   --calor-3: color-mix(in srgb, var(--accent) 52%, var(--bg));

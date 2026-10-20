@@ -59,7 +59,7 @@ provide("navegar", (tab: string) => {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--border);
 }
 
 .app-title {
@@ -71,7 +71,7 @@ provide("navegar", (tab: string) => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 999px;
   background: transparent;
   color: inherit;
@@ -85,9 +85,9 @@ provide("navegar", (tab: string) => {
 }
 
 .subjects-button.active {
-  background: #000;
-  border-color: #000;
-  color: #fff;
+  background: var(--text-h);
+  border-color: var(--text-h);
+  color: var(--bg);
 }
 .view-container {
   flex: 1;

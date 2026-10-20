@@ -93,8 +93,8 @@ import {
   height: 64px;
   padding-bottom: env(safe-area-inset-bottom);
 
-  background: #fff;
-  border-top: 1px solid #e5e5e5;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
 }
 
 .nav-item {
@@ -109,7 +109,7 @@ import {
 
   border: none;
   background: transparent;
-  color: #737373;
+  color: var(--text);
 
   font-size: 10px;
   cursor: pointer;
@@ -129,7 +129,7 @@ import {
 }
 
 .nav-item.active {
-  color: #000;
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -142,8 +142,8 @@ import {
 
 
 .nav-item-highlight svg {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--text-h);
+  color: var(--bg);
   padding: 10px;
   border-radius: 10%;
   width: 44px;
@@ -152,7 +152,7 @@ import {
 }
 .nav-item-highlight.active span {
   font-weight: 700;
-  color: #000;
+  color: var(--accent);
 } 
 
 </style>
