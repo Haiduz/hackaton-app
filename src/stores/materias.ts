@@ -63,7 +63,7 @@ export const CONDICIONES: { valor: Condicion; etiqueta: string }[] = [
   { valor: 'aprobada', etiqueta: 'Aprobada' },
 ]
 
-export const CONDICION_POR_DEFECTO: Condicion = 'regular'
+export const CONDICION_POR_DEFECTO: Condicion = 'no_cursable'
 const CONDICIONES_SELECCIONABLES: Condicion[] = ['regular', 'libre']
 
 export function etiquetaCondicion(condicion: Condicion) {
