@@ -2,12 +2,15 @@
 import { useMateriasStore } from '../../stores/materias'
 import ColapsableMateria from '../ColapsableMateria.vue'
 import EstadoVacio from '../EstadoVacio.vue'
+import MiniCalendario from '../estadisticas/MiniCalendario.vue'
 
 const store = useMateriasStore()
 </script>
 
 <template>
   <section class="home">
+    <MiniCalendario />
+
     <EstadoVacio v-if="!store.seleccionadas.length" />
 
     <ul v-else class="lista">
