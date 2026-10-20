@@ -2,6 +2,7 @@
 import { computed, provide, ref, type Component } from "vue";
 import { BookText } from "lucide-vue-next";
 import bottomNavigation from "./components/BottomNavBar.vue";
+import AppLogo from "./components/AppLogo.vue";
 import Home from "./components/views/Home.vue";
 import Timer from "./components/views/Timer.vue";
 import Tree from "./components/views/Tree.vue";
@@ -32,7 +33,7 @@ provide("navegar", (tab: string) => {
 <template>
   <header class="app-header">
     <div class="app-brand">
-      <img src="/icons/logo_cb.svg" alt="" class="app-logo" />
+      <AppLogo class="app-logo" />
       <h2 class="app-title">caso_base</h2>
     </div>
 
@@ -75,7 +76,8 @@ provide("navegar", (tab: string) => {
 .app-logo {
   width: 36px;
   height: 36px;
-  object-fit: contain;
+  flex-shrink: 0;
+  color: var(--text-h);
 }
 
 .app-title {
