@@ -83,7 +83,7 @@ const CONDICIONES_QUE_HABILITAN: Condicion[] = ['regular', 'aprobada']
 
 // Materias que arrancan con otra condición (por defecto: 1º año, 1º cuatrimestre).
 export const CUATRIMESTRE_INICIAL = { year: 1, term: 1 }
-export const CONDICION_CUATRIMESTRE_INICIAL: Condicion = 'regular'
+export const CONDICION_CUATRIMESTRE_INICIAL: Condicion = 'libre'
 
 const CONDICIONES_SELECCIONABLES: Condicion[] = ['regular', 'libre']
 
