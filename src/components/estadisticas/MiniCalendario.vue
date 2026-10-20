@@ -162,6 +162,7 @@ const mensajeRacha = computed(() => {
 
 <style scoped>
 .mini {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -214,12 +215,11 @@ const mensajeRacha = computed(() => {
   --hueco: 3px;
   display: flex;
   gap: 0.4rem;
-  max-width: calc(var(--semanas) * (var(--lado) + var(--hueco)) + 2rem);
 }
 
 .dias {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: repeat(7, minmax(0, 1fr));
   gap: var(--hueco);
   padding-top: 1.1rem;
   font-size: 0.62rem;
@@ -228,7 +228,6 @@ const mensajeRacha = computed(() => {
 .dias span {
   display: flex;
   align-items: center;
-  height: var(--lado);
   line-height: 1;
 }
 
@@ -312,27 +311,26 @@ const mensajeRacha = computed(() => {
 }
 
 .contenido {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   align-items: stretch;
   gap: 1rem 1.5rem;
 }
 
 .calendario {
   display: flex;
-  flex: 1 1 18rem;
   flex-direction: column;
+  justify-content: space-between;
   gap: 0.6rem;
   min-width: 0;
 }
 
 .resumen {
   display: flex;
-  flex: 1 1 11rem;
   flex-direction: column;
+  justify-content: space-between;
   gap: 0.85rem;
   min-width: 0;
-  max-width: 16rem;
   padding-left: 1.5rem;
   border-left: 1px solid var(--border);
 }
@@ -397,23 +395,26 @@ const mensajeRacha = computed(() => {
 
 .semana-racha {
   display: flex;
+  justify-content: space-between;
   gap: 0.35rem;
-  margin: 0.25rem 0 0;
+  margin: 0.5rem 0 0;
   padding: 0;
   list-style: none;
 }
 
 .dia-racha {
+  position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.6rem;
 }
 
 .punto {
   display: block;
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 1.1rem;
+  height: 1.1rem;
   border: 1px solid var(--border);
   border-radius: 50%;
   background: var(--calor-0);
@@ -467,9 +468,12 @@ const mensajeRacha = computed(() => {
   border: 0;
 }
 
-@media (max-width: 640px) {
+@container (max-width: 560px) {
+  .contenido {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .resumen {
-    max-width: none;
     padding-top: 1rem;
     padding-left: 0;
     border-top: 1px solid var(--border);
