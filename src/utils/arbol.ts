@@ -1,14 +1,15 @@
 import type { Materia } from '../stores/materias'
 import type { GrupoAnio } from './agrupar'
 
-export const NODO_ANCHO = 208
-export const NODO_ALTO = 92
-const GAP_X = 96
-const GAP_Y = 14
-const ALTO_ENCABEZADO_ANIO = 48
-const ALTO_ENCABEZADO_TERM = 34
-const GAP_TERM = 12
-const PADDING = 8
+export const NODO_ANCHO = 188
+export const NODO_ALTO = 104
+export const COLUMNA = 252
+export const FILA = 120
+export const Y_ANIO = 0
+export const Y_TERM = 46
+export const Y_NODOS = 92
+
+const SEPARACION = COLUMNA - NODO_ANCHO
 
 export interface NodoPos {
   materia: Materia
@@ -20,6 +21,7 @@ export interface EncabezadoAnio {
   key: string
   anio: number | null
   x: number
+  ancho: number
   materias: Materia[]
 }
 
@@ -27,7 +29,6 @@ export interface EncabezadoTerm {
   key: string
   term: number | null
   x: number
-  y: number
   materias: Materia[]
 }
 
@@ -39,95 +40,43 @@ export interface LayoutArbol {
   alto: number
 }
 
+// Cada cuatrimestre es una columna; los años agrupan sus columnas.
 export function calcularLayout(grupos: GrupoAnio[]): LayoutArbol {
   const nodos: NodoPos[] = []
   const anios: EncabezadoAnio[] = []
   const terminos: EncabezadoTerm[] = []
-  let altoMax = 0
+  let columna = 0
+  let filasMax = 0
 
-  grupos.forEach((grupo, i) => {
-    const x = PADDING + i * (NODO_ANCHO + GAP_X)
-    let y = ALTO_ENCABEZADO_ANIO
+  for (const grupo of grupos) {
+    const xAnio = columna * COLUMNA
 
     anios.push({
       key: String(grupo.anio),
       anio: grupo.anio,
-      x,
+      x: xAnio,
+      ancho: grupo.cuatrimestres.length * COLUMNA - SEPARACION,
       materias: grupo.cuatrimestres.flatMap(c => c.materias),
     })
 
     for (const cuatri of grupo.cuatrimestres) {
-      terminos.push({
-        key: `${grupo.anio}-${cuatri.term}`,
-        term: cuatri.term,
-        x,
-        y,
-        materias: cuatri.materias,
+      const x = columna * COLUMNA
+      terminos.push({ key: `${grupo.anio}-${cuatri.term}`, term: cuatri.term, x, materias: cuatri.materias })
+
+      cuatri.materias.forEach((materia, fila) => {
+        nodos.push({ materia, x, y: Y_NODOS + fila * FILA })
       })
-      y += ALTO_ENCABEZADO_TERM
 
-      for (const materia of cuatri.materias) {
-        nodos.push({ materia, x, y })
-        y += NODO_ALTO + GAP_Y
-      }
-      y += GAP_TERM
+      filasMax = Math.max(filasMax, cuatri.materias.length)
+      columna++
     }
-
-    altoMax = Math.max(altoMax, y)
-  })
+  }
 
   return {
     nodos,
     anios,
     terminos,
-    ancho: PADDING * 2 + grupos.length * NODO_ANCHO + Math.max(grupos.length - 1, 0) * GAP_X,
-    alto: altoMax + PADDING,
+    ancho: Math.max(columna * COLUMNA - SEPARACION, 0),
+    alto: Y_NODOS + filasMax * FILA,
   }
-}
-
-export interface Arista {
-  key: string
-  desde: number
-  hasta: number
-  d: string
-}
-
-// Une cada correlativa (origen) con la materia que la requiere (destino).
-export function calcularAristas(
-  nodos: NodoPos[],
-  prerequisitosDe: (id: number) => number[],
-): Arista[] {
-  const porId = new Map(nodos.map(n => [n.materia.id, n]))
-  const aristas: Arista[] = []
-
-  for (const destino of nodos) {
-    for (const origenId of prerequisitosDe(destino.materia.id)) {
-      const origen = porId.get(origenId)
-      if (!origen) continue
-
-      const yO = origen.y + NODO_ALTO / 2
-      const yD = destino.y + NODO_ALTO / 2
-      let d: string
-
-      if (origen.x === destino.x) {
-        const xBorde = origen.x
-        const curva = 34
-        d = `M ${xBorde} ${yO} C ${xBorde - curva} ${yO}, ${xBorde - curva} ${yD}, ${xBorde} ${yD}`
-      } else if (origen.x < destino.x) {
-        const x1 = origen.x + NODO_ANCHO
-        const x2 = destino.x
-        const mitad = (x2 - x1) / 2
-        d = `M ${x1} ${yO} C ${x1 + mitad} ${yO}, ${x2 - mitad} ${yD}, ${x2} ${yD}`
-      } else {
-        const x1 = origen.x
-        const x2 = destino.x + NODO_ANCHO
-        const mitad = (x1 - x2) / 2
-        d = `M ${x1} ${yO} C ${x1 - mitad} ${yO}, ${x2 + mitad} ${yD}, ${x2} ${yD}`
-      }
-
-      aristas.push({ key: `${origenId}-${destino.materia.id}`, desde: origenId, hasta: destino.materia.id, d })
-    }
-  }
-
-  return aristas
 }
