@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
-
-const activeTab = ref("inicio");
+const activeTab = defineModel<string>({ default: "inicio" });
 
 const tabs = [
+  { id: "tree", label: "Arbol", icon: "tree" },
+  { id: "calendar", label: "Calendario", icon: "calendar" },
   { id: "inicio", label: "Inicio", icon: "home" },
   { id: "timer", label: "Pomodoro", icon: "timer" },
-  { id: "tree", label: "Arbol", icon: "tree" },
   { id: "stats", label: "Stats", icon: "stats" },
-  { id: "calendar", label: "Calendario", icon: "calendar" },
-  { id: "profile", label: "Perfil", icon: "profile" },
 ];
 
 function selectTab(id: string) {
@@ -21,7 +18,6 @@ import {
   Timer,
   House,
   CalendarDays,
-  UserRound,
   Network
 } from "lucide-vue-next";
 </script>
@@ -32,18 +28,23 @@ import {
       v-for="tab in tabs"
       :key="tab.id"
       class="nav-item"
-      :class="{ active: activeTab === tab.id }"
+      :class="{ 
+        active: activeTab === tab.id, 
+        'nav-item-highlight': tab.id === 'inicio' 
+      }"
       :aria-label="tab.label"
       :aria-current="activeTab === tab.id ? 'page' : undefined"
       @click="selectTab(tab.id)"
     >
-      <!-- Inicio -->
-      <House v-if="tab.icon === 'home'"
-      :size="24"
+    
+    <!-- Inicio -->
+    <House 
+      v-if="tab.icon === 'home'"
+      :size="tab.id === 'inicio' ? 26 : 24"
       :stroke-width="1.8"
-      ></House>
-
-      <!-- Pomodoro -->
+    ></House>
+    
+    <!-- Pomodoro -->
       <Timer
         v-else-if="tab.icon === 'timer'"
         :size="24"
@@ -70,13 +71,6 @@ import {
         :size="24"
         :stroke-width="1.8"
       ></ChartNoAxesColumnIncreasing>
-      
-      <!-- Perfil -->
-      <UserRound
-        v-else-if="tab.icon === 'profile'"
-        :size="24"
-        :stroke-width="1.8"
-      ></UserRound>
 
       <span>{{ tab.label }}</span>
     </button>
@@ -85,21 +79,22 @@ import {
 
 <style scoped>
 .bottom-navigation {
-  position: fixed;
+  position: sticky;
   bottom: 0;
-  left: 0;
-  right: 0;
+  margin-top: auto;
   z-index: 1000;
 
   display: flex;
   justify-content: space-around;
   align-items: center;
 
+  flex-shrink: 0;
+  box-sizing: border-box;
   height: 64px;
   padding-bottom: env(safe-area-inset-bottom);
 
-  background: #fff;
-  border-top: 1px solid #e5e5e5;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
 }
 
 .nav-item {
@@ -114,11 +109,12 @@ import {
 
   border: none;
   background: transparent;
-  color: #737373;
+  color: var(--text);
 
   font-size: 10px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease;
 }
 
 .nav-item svg {
@@ -133,13 +129,30 @@ import {
 }
 
 .nav-item.active {
-  color: #000;
+  color: var(--accent-text);
   font-weight: 600;
 }
 
-.nav-item:focus-visible {
-  outline: 2px solid #0095f6;
-  outline-offset: -4px;
-  border-radius: 8px;
+/* Estilo de realce para el botón de Inicio */
+.nav-item-highlight {
+  position: relative;
 }
+
+/* Opcional: Estilo de burbuja elevada flotante (descomenta si prefieres estilo flotante clásico estilo app moderna) */
+
+
+.nav-item-highlight svg {
+  background-color: var(--text-h);
+  color: var(--bg);
+  padding: 10px;
+  border-radius: 10%;
+  width: 44px;
+  height: 44px;
+  box-sizing: content-box;
+}
+.nav-item-highlight.active span {
+  font-weight: 700;
+  color: var(--accent-text);
+} 
+
 </style>

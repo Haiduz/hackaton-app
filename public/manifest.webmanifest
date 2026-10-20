@@ -1,0 +1,32 @@
+{
+  "name": "caso_base",
+  "short_name": "caso_base",
+  "description": "Organizá tus materias, correlativas, horarios y sesiones de estudio.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#e3b526",
+  "icons": [
+    {
+      "src": "/icons/logo_cb.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/logo_cb.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/logo_cb.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
