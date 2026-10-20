@@ -114,6 +114,11 @@ export function horasMinutos(seg: number): string {
   return h ? `${h} h ${m % 60} min` : `${m % 60} min`
 }
 
+export function horasMinutosCompacto(seg: number): string {
+  const m = Math.round(seg / 60)
+  return `${Math.floor(m / 60)}h ${m % 60}m`
+}
+
 export function reloj(min: number): string {
   const t = ((Math.round(min) % 1440) + 1440) % 1440
   return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`

@@ -2,14 +2,27 @@
 import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import { Check, Lock } from 'lucide-vue-next'
+import { idEstudioDeCodigoPlan } from '../../data/planLCC2024'
+import { useEstudioStore } from '../../stores/estudio'
 import { etiquetaCondicion, useMateriasStore, type Materia } from '../../stores/materias'
 import { NODO_ALTO, NODO_ANCHO } from '../../utils/arbol'
+import { horasMinutosCompacto } from '../../utils/estudio'
 
 const props = defineProps<{
   data: { materia: Materia; atenuada: boolean; resaltada: boolean }
 }>()
 
 const store = useMateriasStore()
+const estudio = useEstudioStore()
+
+const tiempoEstudiado = computed(() => {
+  const idEstudio = idEstudioDeCodigoPlan(props.data.materia.code)
+  const segundos = estudio.sesiones.reduce(
+    (suma, s) => (s.materiaId === idEstudio ? suma + s.foco : suma),
+    0,
+  )
+  return horasMinutosCompacto(segundos)
+})
 
 const condicion = computed(() => store.condicionDe(props.data.materia.id))
 const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
@@ -33,6 +46,10 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
       {{ data.materia.name }}<span v-if="condicion === 'aprobada'" class="sr-only"> (aprobada)</span>
     </p>
 
+    <p class="estudiado">
+      <span class="sr-only">Tiempo estudiado: </span>{{ tiempoEstudiado }}
+    </p>
+
     <span class="estado">
       {{ etiquetaCondicion(condicion) }}
       <span v-if="motivo === 'libre'" class="sr-only"> (bloqueada porque una correlativa está en condición Libre)</span>
@@ -49,8 +66,9 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
+  position: relative;
+  gap: 4px;
+  padding: 10px 12px 8px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-left: 0;
@@ -92,11 +110,11 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
 }
 
 .cabecera {
+  position: absolute;
+  top: 8px;
+  right: 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 20px;
 }
 
 .icono {
@@ -111,10 +129,20 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
   line-clamp: 2;
   overflow: hidden;
   margin: 0;
+  padding-right: 18px;
   color: var(--text-h);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.estudiado {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
 
 .condicion-aprobada .nombre {
