@@ -1,7 +1,7 @@
 import { clave, diaSemana, sumarDias, type MateriaEstudio, type Sesion } from '../utils/estudio'
 
 // Paleta Okabe-Ito: distinguible con daltonismo. Dentro de un mismo año no se repite ningún tono.
-// Plan completo de la LCC sin las optativas (512, 521 y 522).
+// Plan completo de la LCC sin las optativas (512, 521 y 522), Práctica Profesional, Taller de Tesina, Tesina ni Examen de Inglés.
 const AZUL = '#0072B2'
 const NARANJA = '#E69F00'
 const VERDE = '#009E73'
@@ -30,7 +30,6 @@ export const MATERIAS_ESTUDIO: MateriaEstudio[] = [
   { id: 311, nombre: 'Probabilidad y Estadística', corto: 'PyE', anio: 3, color: CELESTE },
   { id: 312, nombre: 'Estructuras de Datos y Algoritmos II', corto: 'EDyA II', anio: 3, color: BERMELLON },
   { id: 313, nombre: 'Análisis de Lenguajes de Programación', corto: 'ALP', anio: 3, color: OCRE },
-  { id: 314, nombre: 'Examen de Suficiencia de Inglés', corto: 'Inglés', anio: 3, color: GRIS },
   { id: 321, nombre: 'Modelos Físicos', corto: 'Mod. Físicos', anio: 3, color: AZUL },
   { id: 322, nombre: 'Sistemas Operativos I', corto: 'SO I', anio: 3, color: NARANJA },
   { id: 323, nombre: 'Comunicaciones', corto: 'Comunic.', anio: 3, color: VERDE },
@@ -44,9 +43,6 @@ export const MATERIAS_ESTUDIO: MateriaEstudio[] = [
   { id: 423, nombre: 'Complementos de Matemática II', corto: 'CM II', anio: 4, color: BERMELLON },
 
   { id: 511, nombre: 'Seguridad Informática', corto: 'Seguridad', anio: 5, color: AZUL },
-  { id: 513, nombre: 'Práctica Profesional', corto: 'Práctica', anio: 5, color: NARANJA },
-  { id: 514, nombre: 'Taller de Tesina', corto: 'Taller Tesina', anio: 5, color: VERDE },
-  { id: 523, nombre: 'Tesina', corto: 'Tesina', anio: 5, color: ROSA },
 ]
 
 // Primer cuatrimestre + mesas de julio, y luego el segundo cuatrimestre.
