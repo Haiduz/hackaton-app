@@ -198,14 +198,6 @@ const superpuestoCon = computed(() => {
         <div class="segmentado" role="group" aria-label="Vista del calendario">
           <button
             type="button"
-            :aria-pressed="vista === 'dia'"
-            :class="{ activo: vista === 'dia' }"
-            @click="vista = 'dia'"
-          >
-            Día
-          </button>
-          <button
-            type="button"
             :aria-pressed="vista === 'semana'"
             :class="{ activo: vista === 'semana' }"
             @click="vista = 'semana'"

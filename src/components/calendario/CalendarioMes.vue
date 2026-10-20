@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import {
   claveFecha,
   diasDelMes,
-  formatearMinutos,
   type EventoCalendario,
   type ExamenCalendario,
 } from '../../utils/calendario'
@@ -83,16 +82,6 @@ const semanas = computed(() => celdas.value.length / 7)
           >
             <span class="sr-only">Examen: </span>
             <span class="chip-texto">{{ e.titulo }} · {{ e.materia }}</span>
-          </li>
-          <li
-            v-for="e in c.clases"
-            :key="`cl-${e.id}`"
-            class="chip clase"
-            :style="{ '--hue': e.hue }"
-            :title="`${e.materia}, ${formatearMinutos(e.inicio)} a ${formatearMinutos(e.fin)}`"
-          >
-            <span class="punto" aria-hidden="true" />
-            <span class="chip-texto">{{ formatearMinutos(e.inicio) }} {{ e.materia }}</span>
           </li>
           <li v-if="c.ocultas" class="mas">+{{ c.ocultas }} más</li>
         </ul>
