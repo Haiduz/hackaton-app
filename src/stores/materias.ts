@@ -63,7 +63,13 @@ export const CONDICIONES: { valor: Condicion; etiqueta: string }[] = [
   { valor: 'aprobada', etiqueta: 'Aprobada' },
 ]
 
+// Condición inicial de toda materia, salvo las que estén en CUATRIMESTRE_INICIAL.
 export const CONDICION_POR_DEFECTO: Condicion = 'no_cursable'
+
+// Materias que arrancan con otra condición (por defecto: 1º año, 1º cuatrimestre).
+export const CUATRIMESTRE_INICIAL = { year: 1, term: 1 }
+export const CONDICION_CUATRIMESTRE_INICIAL: Condicion = 'regular'
+
 const CONDICIONES_SELECCIONABLES: Condicion[] = ['regular', 'libre']
 
 export function etiquetaCondicion(condicion: Condicion) {
@@ -157,8 +163,15 @@ export const useMateriasStore = defineStore('materias', () => {
     return overviews.value[id]?.prerequisites.map(p => p.id) ?? []
   }
 
+  function condicionInicial(id: number): Condicion {
+    const materia = disponibles.value.find(m => m.id === id)
+    const esInicial =
+      materia?.year === CUATRIMESTRE_INICIAL.year && materia?.term === CUATRIMESTRE_INICIAL.term
+    return esInicial ? CONDICION_CUATRIMESTRE_INICIAL : CONDICION_POR_DEFECTO
+  }
+
   function condicionElegida(id: number): Condicion {
-    return condiciones.value[id] ?? CONDICION_POR_DEFECTO
+    return condiciones.value[id] ?? condicionInicial(id)
   }
 
   // Una materia queda "No cursable" si alguna de sus correlativas directas está en condición Libre.

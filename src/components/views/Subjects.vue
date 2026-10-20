@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useMateriasStore, etiquetaCondicion, type Materia } from '../../stores/materias.ts'
+import { CONDICIONES, useMateriasStore, type Condicion, type Materia } from '../../stores/materias.ts'
 import { agruparPorAnioYCuatrimestre, tituloAnio, tituloCuatrimestre } from '../../utils/agrupar'
 import Colapsable from '../Colapsable.vue'
 
@@ -13,6 +13,10 @@ function estaSeleccionada(materia: Materia) {
 
 function estaAprobada(materia: Materia) {
   return store.condicionDe(materia.id) === 'aprobada'
+}
+
+function cambiarCondicion(materia: Materia, event: Event) {
+  store.setCondicion(materia.id, (event.target as HTMLSelectElement).value as Condicion)
 }
 
 function todasAprobadas(materias: Materia[]) {
@@ -70,7 +74,7 @@ function contadorTexto(cantidad: number) {
         >
           <ul class="lista">
             <li v-for="m in cuatri.materias" :key="m.id">
-              <label
+              <div
                 class="materia"
                 :class="{
                   activa: estaSeleccionada(m),
@@ -78,22 +82,36 @@ function contadorTexto(cantidad: number) {
                   aprobada: estaAprobada(m),
                 }"
               >
-                <input
-                  type="checkbox"
-                  :checked="estaSeleccionada(m)"
-                  :disabled="!store.esSeleccionable(m.id)"
-                  @change="store.toggleMateria(m)"
-                />
-                <span class="materia-info">
-                  <span class="materia-nombre">{{ m.name }}</span>
-                  <span class="materia-meta">
-                    <code v-if="m.code">{{ m.code }}</code>
-                    <span class="condicion" :data-condicion="store.condicionDe(m.id)">
-                      {{ etiquetaCondicion(store.condicionDe(m.id)) }}
-                    </span>
+                <label class="materia-seleccion">
+                  <input
+                    type="checkbox"
+                    :checked="estaSeleccionada(m)"
+                    :disabled="!store.esSeleccionable(m.id)"
+                    @change="store.toggleMateria(m)"
+                  />
+                  <span class="materia-info">
+                    <span class="materia-nombre">{{ m.name }}</span>
+                    <code v-if="m.code" class="materia-codigo">{{ m.code }}</code>
                   </span>
-                </span>
-              </label>
+                </label>
+                <div class="materia-condicion">
+                  <label :for="`condicion-${m.id}`" class="sr-only">Condición en {{ m.name }}</label>
+                  <select
+                    :id="`condicion-${m.id}`"
+                    class="selector"
+                    :data-condicion="store.condicionDe(m.id)"
+                    :value="store.condicionDe(m.id)"
+                    :disabled="store.bloqueadaPorLibre(m.id)"
+                    :aria-describedby="store.bloqueadaPorLibre(m.id) ? `bloqueo-${m.id}` : undefined"
+                    @change="cambiarCondicion(m, $event)"
+                  >
+                    <option v-for="c in CONDICIONES" :key="c.valor" :value="c.valor">{{ c.etiqueta }}</option>
+                  </select>
+                  <small v-if="store.bloqueadaPorLibre(m.id)" :id="`bloqueo-${m.id}`" class="bloqueo">
+                    Una correlativa está en Libre
+                  </small>
+                </div>
+              </div>
             </li>
           </ul>
         </Colapsable>
@@ -152,22 +170,79 @@ function contadorTexto(cantidad: number) {
 
 .materia {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: 10px;
-  cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
+}
+
+.materia-seleccion {
+  display: flex;
+  flex: 1 1 14rem;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.materia-codigo {
+  align-self: flex-start;
+  font-size: 13px;
+  padding: 2px 6px;
+}
+
+.materia-condicion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.selector {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.selector[data-condicion='regular'],
+.selector[data-condicion='libre'] {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.selector:disabled {
+  cursor: not-allowed;
+}
+
+.selector:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.bloqueo {
+  font-size: 12px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .materia:hover {
   border-color: var(--accent-border);
-}
-
-.materia:focus-within {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .materia.activa {
@@ -195,20 +270,7 @@ function contadorTexto(cantidad: number) {
   font-size: 16px;
 }
 
-.materia-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 14px;
-}
-
-.materia-meta code {
-  font-size: 13px;
-  padding: 2px 6px;
-}
-
-.materia.bloqueada {
+.materia.bloqueada .materia-seleccion {
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -217,22 +279,15 @@ function contadorTexto(cantidad: number) {
   border-color: var(--border);
 }
 
+.materia:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .materia.aprobada .materia-nombre {
   color: var(--text);
   text-decoration: line-through;
   text-decoration-thickness: 2px;
 }
 
-.condicion {
-  padding: 1px 8px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 12px;
-}
-
-.condicion[data-condicion='regular'],
-.condicion[data-condicion='libre'] {
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
 </style>

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import { Check, Lock } from 'lucide-vue-next'
-import { CONDICIONES, useMateriasStore, type Condicion, type Materia } from '../../stores/materias'
+import { etiquetaCondicion, useMateriasStore, type Materia } from '../../stores/materias'
 import { NODO_ALTO, NODO_ANCHO } from '../../utils/arbol'
 
 const props = defineProps<{
@@ -11,15 +11,8 @@ const props = defineProps<{
 
 const store = useMateriasStore()
 
-const selectId = `condicion-${props.data.materia.id}`
-const hintId = `bloqueo-${props.data.materia.id}`
-
 const condicion = computed(() => store.condicionDe(props.data.materia.id))
 const bloqueadaPorLibre = computed(() => store.bloqueadaPorLibre(props.data.materia.id))
-
-function cambiarCondicion(event: Event) {
-  store.setCondicion(props.data.materia.id, (event.target as HTMLSelectElement).value as Condicion)
-}
 </script>
 
 <template>
@@ -41,19 +34,9 @@ function cambiarCondicion(event: Event) {
       {{ data.materia.name }}<span v-if="condicion === 'aprobada'" class="sr-only"> (aprobada)</span>
     </p>
 
-    <label :for="selectId" class="sr-only">Condición en {{ data.materia.name }}</label>
-    <select
-      :id="selectId"
-      class="selector nodrag nopan nowheel"
-      :value="condicion"
-      :disabled="bloqueadaPorLibre"
-      :aria-describedby="bloqueadaPorLibre ? hintId : undefined"
-      @change="cambiarCondicion"
-    >
-      <option v-for="c in CONDICIONES" :key="c.valor" :value="c.valor">{{ c.etiqueta }}</option>
-    </select>
-    <span v-if="bloqueadaPorLibre" :id="hintId" class="sr-only">
-      Bloqueada porque una correlativa está en condición Libre.
+    <span class="estado">
+      {{ etiquetaCondicion(condicion) }}
+      <span v-if="bloqueadaPorLibre" class="sr-only"> (bloqueada porque una correlativa está en condición Libre)</span>
     </span>
 
     <Handle type="source" :position="Position.Right" :connectable="false" />
@@ -147,27 +130,16 @@ function cambiarCondicion(event: Event) {
   text-decoration-thickness: 2px;
 }
 
-.selector {
-  width: 100%;
+.estado {
+  align-self: flex-start;
   margin-top: auto;
-  padding: 3px 6px;
+  padding: 2px 8px;
   border: 1px solid color-mix(in srgb, var(--tono) 55%, var(--border));
-  border-radius: 6px;
+  border-radius: 999px;
   background: color-mix(in srgb, var(--tono) 10%, var(--bg));
   color: var(--text-h);
-  font: inherit;
   font-size: 12px;
-  cursor: pointer;
-}
-
-.selector:disabled {
-  cursor: not-allowed;
-  opacity: 0.75;
-}
-
-.selector:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  font-weight: 500;
 }
 
 .sr-only {
