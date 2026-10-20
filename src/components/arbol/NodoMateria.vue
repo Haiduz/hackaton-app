@@ -23,9 +23,8 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
   >
     <Handle type="target" :position="Position.Left" :connectable="false" />
 
-    <div class="cabecera">
-      <code v-if="data.materia.code" class="codigo">{{ data.materia.code }}</code>
-      <span v-else />
+    <div class="cabecera" :data-codigo="data.materia.code ?? undefined">
+      <span />
       <Check v-if="condicion === 'aprobada'" class="icono" :size="14" :stroke-width="2.5" aria-hidden="true" />
       <Lock v-else-if="condicion === 'no_cursable'" class="icono" :size="13" :stroke-width="2.25" aria-hidden="true" />
     </div>
@@ -98,13 +97,6 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
   justify-content: space-between;
   gap: 8px;
   min-height: 20px;
-}
-
-.codigo {
-  padding: 1px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
 }
 
 .icono {

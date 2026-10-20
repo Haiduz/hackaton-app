@@ -1,6 +1,7 @@
 // src/stores/materias.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { CODIGO_PLAN_POR_CODIGO_API, PLAN_LCC_2024, requisitosDelPlan } from '../data/planLCC2024'
 
 export interface Materia {
   id: number
@@ -111,6 +112,17 @@ function derivarAnioYCuatrimestre(code: string | null): { year: number; term: nu
   return { year: Number(match[1]), term: Number(match[2]) }
 }
 
+// Reemplaza el código de la API por el del Plan 2024 y toma de ahí año y cuatrimestre.
+function adaptarAlPlan(materia: Materia): Materia {
+  const codigoPlan = CODIGO_PLAN_POR_CODIGO_API[materia.code?.trim().toLowerCase() ?? '']
+  const delPlan = codigoPlan ? PLAN_LCC_2024[codigoPlan] : undefined
+  if (codigoPlan && delPlan) {
+    return { ...materia, code: codigoPlan, year: delPlan.anio, term: ((delPlan.cuatri - 1) % 2) + 1 }
+  }
+  const derivado = derivarAnioYCuatrimestre(materia.code)
+  return derivado ? { ...materia, year: derivado.year, term: derivado.term } : materia
+}
+
 function apiUrl(): string | null {
   return (import.meta.env.VITE_API_URL as string | undefined) ?? null
 }
@@ -136,10 +148,7 @@ export const useMateriasStore = defineStore('materias', () => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data: Page<Materia> = await res.json()
 
-      disponibles.value = data.items.map(m => {
-        const derivado = derivarAnioYCuatrimestre(m.code)
-        return derivado ? { ...m, year: derivado.year, term: derivado.term } : m
-      })
+      disponibles.value = data.items.map(adaptarAlPlan)
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Error al cargar materias'
       disponibles.value = []
@@ -183,7 +192,17 @@ export const useMateriasStore = defineStore('materias', () => {
     await Promise.all(ids.map(cargarOverview))
   }
 
+  function requisitosPlanDe(id: number): string[] | null {
+    const codigo = disponibles.value.find(m => m.id === id)?.code
+    return codigo ? requisitosDelPlan(codigo) : null
+  }
+
+  // El Plan 2024 tiene prioridad; la API solo cubre materias que no están en él (p. ej. optativas).
   function prerequisitosDe(id: number): number[] {
+    const delPlan = requisitosPlanDe(id)
+    if (delPlan) {
+      return delPlan.flatMap(codigo => disponibles.value.find(m => m.code === codigo)?.id ?? [])
+    }
     return overviews.value[id]?.prerequisites.map(p => p.id) ?? []
   }
 
@@ -202,7 +221,7 @@ export const useMateriasStore = defineStore('materias', () => {
   // Motivo por el que la materia está "No cursable"; null si no lo está.
   function motivoBloqueo(id: number): MotivoBloqueo | null {
     if (condiciones.value[id] === 'aprobada') return null
-    if (!overviews.value[id]) return esInicial(id) ? null : 'correlativas'
+    if (!requisitosPlanDe(id) && !overviews.value[id]) return esInicial(id) ? null : 'correlativas'
     if (enCalculo.has(id)) return 'correlativas'
 
     enCalculo.add(id)
