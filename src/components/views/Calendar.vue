@@ -7,16 +7,19 @@ import {
   formatearMinutos,
   inicioSemana,
   sumarDias,
+  sumarMeses,
   weekdayDe,
   type EventoCalendario,
+  type ExamenCalendario,
 } from '../../utils/calendario'
 import { comisionesUnicas, nombreDia } from '../../utils/horarios'
 import AvisoConflictos from '../calendario/AvisoConflictos.vue'
 import CalendarioGrilla from '../calendario/CalendarioGrilla.vue'
+import CalendarioMes from '../calendario/CalendarioMes.vue'
 import DetalleEvento from '../calendario/DetalleEvento.vue'
 import EstadoVacio from '../EstadoVacio.vue'
 
-type Vista = 'semana' | 'dia'
+type Vista = 'dia' | 'semana' | 'mes'
 
 const HUES = [217, 142, 28, 280, 188, 340, 95, 8]
 
@@ -57,6 +60,25 @@ const eventos = computed<EventoCalendario[]>(() =>
   ),
 )
 
+const examenes = computed<ExamenCalendario[]>(() =>
+  store.seleccionadas.flatMap((m, i) =>
+    store.examenesDe(m.id).map(e => ({
+      id: e.id,
+      materiaId: m.id,
+      materia: m.name,
+      titulo: e.titulo,
+      clave: e.fecha,
+      hora: e.hora,
+      hue: HUES[i % HUES.length],
+    })),
+  ),
+)
+
+function abrirDia(dia: Date) {
+  fecha.value = dia
+  vista.value = 'dia'
+}
+
 const dias = computed(() => {
   if (vista.value === 'dia') return [{ fecha: fecha.value, weekday: weekdayDe(fecha.value) }]
   const lunes = inicioSemana(fecha.value)
@@ -80,6 +102,7 @@ const horaFin = computed(() =>
 const titulo = computed(() => {
   const formato = (d: Date, opciones: Intl.DateTimeFormatOptions) =>
     new Intl.DateTimeFormat('es-AR', opciones).format(d)
+  if (vista.value === 'mes') return formato(fecha.value, { month: 'long', year: 'numeric' })
   const primero = dias.value[0].fecha
   const ultimo = dias.value[dias.value.length - 1].fecha
   if (vista.value === 'dia') return formato(primero, { day: 'numeric', month: 'long', year: 'numeric' })
@@ -88,6 +111,10 @@ const titulo = computed(() => {
 })
 
 function mover(sentido: -1 | 1) {
+  if (vista.value === 'mes') {
+    fecha.value = sumarMeses(fecha.value, sentido)
+    return
+  }
   fecha.value = sumarDias(fecha.value, sentido * (vista.value === 'semana' ? 7 : 1))
 }
 
@@ -185,6 +212,14 @@ const superpuestoCon = computed(() => {
           >
             Semana
           </button>
+          <button
+            type="button"
+            :aria-pressed="vista === 'mes'"
+            :class="{ activo: vista === 'mes' }"
+            @click="vista = 'mes'"
+          >
+            Mes
+          </button>
         </div>
       </div>
 
@@ -204,9 +239,19 @@ const superpuestoCon = computed(() => {
         Tus materias no tienen horarios publicados.
       </p>
 
+      <CalendarioMes
+        v-if="vista === 'mes'"
+        :fecha="fecha"
+        :eventos="eventos"
+        :examenes="examenes"
+        :ahora="ahora"
+        @abrir-dia="abrirDia"
+      />
       <CalendarioGrilla
+        v-else
         :dias="dias"
         :eventos="eventos"
+        :examenes="examenes"
         :conflicto-ids="conflictoIds"
         :hora-inicio="horaInicio"
         :hora-fin="horaFin"
@@ -327,8 +372,11 @@ const superpuestoCon = computed(() => {
   border-radius: 999px 0 0 999px;
 }
 
-.segmentado button:last-child {
+.segmentado button:not(:first-child) {
   margin-left: -1px;
+}
+
+.segmentado button:last-child {
   border-radius: 0 999px 999px 0;
 }
 

@@ -1,4 +1,5 @@
 import type { Comision } from '../stores/materias'
+import { aIsoLocal } from './fechas'
 
 export interface EventoCalendario {
   id: number
@@ -50,6 +51,50 @@ export function inicioSemana(fecha: Date): Date {
   const copia = new Date(fecha)
   copia.setHours(0, 0, 0, 0)
   return sumarDias(copia, -(weekdayDe(copia) - 1))
+}
+
+export interface ExamenCalendario {
+  id: number
+  materiaId: number
+  materia: string
+  titulo: string
+  clave: string // YYYY-MM-DD
+  hora: string
+  hue: number
+}
+
+export interface DiaMes {
+  fecha: Date
+  weekday: number
+  clave: string
+  delMes: boolean
+}
+
+export function claveFecha(fecha: Date): string {
+  return aIsoLocal(fecha)
+}
+
+// Siempre devuelve el día 1, así evita desbordes (31 de enero + 1 mes).
+export function sumarMeses(fecha: Date, meses: number): Date {
+  return new Date(fecha.getFullYear(), fecha.getMonth() + meses, 1)
+}
+
+// Semanas completas (lunes a domingo) que cubren el mes de `fecha`.
+export function diasDelMes(fecha: Date): DiaMes[] {
+  const primero = new Date(fecha.getFullYear(), fecha.getMonth(), 1)
+  const diasEnMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate()
+  const desfase = weekdayDe(primero) - 1
+  const semanas = Math.ceil((desfase + diasEnMes) / 7)
+  const inicio = sumarDias(primero, -desfase)
+  return Array.from({ length: semanas * 7 }, (_, i) => {
+    const dia = sumarDias(inicio, i)
+    return {
+      fecha: dia,
+      weekday: (i % 7) + 1,
+      clave: claveFecha(dia),
+      delMes: dia.getMonth() === fecha.getMonth(),
+    }
+  })
 }
 
 export function mismoDia(a: Date, b: Date): boolean {

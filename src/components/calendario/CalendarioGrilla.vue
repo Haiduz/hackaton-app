@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import {
+  claveFecha,
   formatearMinutos,
   mismoDia,
   posicionar,
   type EventoCalendario,
+  type ExamenCalendario,
 } from '../../utils/calendario'
 import { nombreDia, textoAula } from '../../utils/horarios'
 
@@ -19,6 +21,7 @@ const props = defineProps<{
   dias: DiaGrilla[]
   eventos: EventoCalendario[]
   conflictoIds: Set<number>
+  examenes: ExamenCalendario[]
   horaInicio: number
   horaFin: number
   ahora: Date
@@ -36,6 +39,9 @@ const columnas = computed(() =>
   props.dias.map(dia => ({
     ...dia,
     esHoy: mismoDia(dia.fecha, props.ahora),
+    examenes: props.examenes
+      .filter(e => e.clave === claveFecha(dia.fecha))
+      .sort((a, b) => a.hora.localeCompare(b.hora)),
     eventos: posicionar(props.eventos.filter(e => e.weekday === dia.weekday)),
   })),
 )
@@ -76,6 +82,18 @@ function etiqueta(e: EventoCalendario): string {
         <div v-for="c in columnas" :key="c.weekday" class="cab-dia" :class="{ hoy: c.esHoy }">
           <span class="nombre">{{ nombreDia(c.weekday).slice(0, 3) }}</span>
           <span class="numero">{{ c.fecha.getDate() }}</span>
+          <ul v-if="c.examenes.length" class="examenes">
+            <li
+              v-for="e in c.examenes"
+              :key="e.id"
+              class="examen"
+              :style="{ '--hue': e.hue }"
+              :title="`${e.titulo} - ${e.materia}, ${e.hora}`"
+            >
+              <span class="sr-only">Examen: </span>
+              {{ e.hora }} {{ e.titulo }} · {{ e.materia }}
+            </li>
+          </ul>
         </div>
       </div>
 
@@ -187,6 +205,43 @@ function etiqueta(e: EventoCalendario): string {
   font-size: 18px;
   letter-spacing: 0;
   color: var(--text-h);
+}
+
+.examenes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-self: stretch;
+  margin: 4px 0 0;
+  padding: 0 3px;
+  list-style: none;
+}
+
+.examen {
+  overflow: hidden;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: hsl(var(--hue) 55% 40%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .cab-dia.hoy {
