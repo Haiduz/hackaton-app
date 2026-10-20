@@ -231,7 +231,7 @@ function contadorTexto(cantidad: number) {
 }
 
 .condicion[data-condicion='regular'],
-.condicion[data-condicion='cursable'] {
+.condicion[data-condicion='libre'] {
   border-color: var(--accent-border);
   color: var(--accent);
 }

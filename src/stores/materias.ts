@@ -54,17 +54,17 @@ export interface Examen {
   hora: string // HH:mm
 }
 
-export type Condicion = 'no_cursable' | 'cursable' | 'regular' | 'aprobada'
+export type Condicion = 'no_cursable' | 'regular' | 'libre' | 'aprobada'
 
 export const CONDICIONES: { valor: Condicion; etiqueta: string }[] = [
   { valor: 'no_cursable', etiqueta: 'No cursable' },
-  { valor: 'cursable', etiqueta: 'Cursable/Libre' },
   { valor: 'regular', etiqueta: 'Regular' },
+  { valor: 'libre', etiqueta: 'Libre' },
   { valor: 'aprobada', etiqueta: 'Aprobada' },
 ]
 
-export const CONDICION_POR_DEFECTO: Condicion = 'cursable'
-const CONDICIONES_SELECCIONABLES: Condicion[] = ['cursable', 'regular']
+export const CONDICION_POR_DEFECTO: Condicion = 'regular'
+const CONDICIONES_SELECCIONABLES: Condicion[] = ['regular', 'libre']
 
 export function etiquetaCondicion(condicion: Condicion) {
   return CONDICIONES.find(c => c.valor === condicion)?.etiqueta ?? condicion
@@ -149,8 +149,26 @@ export const useMateriasStore = defineStore('materias', () => {
 
   const condiciones = ref<Record<number, Condicion>>({})
 
-  function condicionDe(id: number): Condicion {
+  async function cargarOverviews(ids: number[]) {
+    await Promise.all(ids.map(cargarOverview))
+  }
+
+  function prerequisitosDe(id: number): number[] {
+    return overviews.value[id]?.prerequisites.map(p => p.id) ?? []
+  }
+
+  function condicionElegida(id: number): Condicion {
     return condiciones.value[id] ?? CONDICION_POR_DEFECTO
+  }
+
+  // Una materia queda "No cursable" si alguna de sus correlativas directas está en condición Libre.
+  function bloqueadaPorLibre(id: number) {
+    if (condicionElegida(id) === 'aprobada') return false
+    return prerequisitosDe(id).some(p => condicionElegida(p) === 'libre')
+  }
+
+  function condicionDe(id: number): Condicion {
+    return bloqueadaPorLibre(id) ? 'no_cursable' : condicionElegida(id)
   }
 
   function esSeleccionable(id: number) {
@@ -159,9 +177,7 @@ export const useMateriasStore = defineStore('materias', () => {
 
   function setCondicion(id: number, condicion: Condicion) {
     condiciones.value[id] = condicion
-    if (!esSeleccionable(id)) {
-      seleccionadas.value = seleccionadas.value.filter(m => m.id !== id)
-    }
+    seleccionadas.value = seleccionadas.value.filter(m => esSeleccionable(m.id))
   }
 
   function toggleMateria(materia: Materia) {
@@ -196,8 +212,12 @@ export const useMateriasStore = defineStore('materias', () => {
     seleccionadas,
     condiciones,
     condicionDe,
+    condicionElegida,
+    bloqueadaPorLibre,
+    prerequisitosDe,
     esSeleccionable,
     setCondicion,
+    cargarOverviews,
     cargando,
     error,
     overviews,

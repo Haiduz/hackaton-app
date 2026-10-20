@@ -1,208 +1,141 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import {
-  CONDICIONES,
-  etiquetaCondicion,
-  useMateriasStore,
-  type Condicion,
-  type Materia,
-} from '../../stores/materias'
+import { computed } from 'vue'
+import { CONDICIONES, useMateriasStore, type Condicion, type Materia } from '../../stores/materias'
+import { NODO_ALTO, NODO_ANCHO } from '../../utils/arbol'
 
-const props = defineProps<{ materia: Materia }>()
+const props = defineProps<{ materia: Materia; x: number; y: number; atenuado?: boolean }>()
 const store = useMateriasStore()
 
 const selectId = `condicion-${props.materia.id}`
-const panelId = `correlativas-${props.materia.id}`
-const mostrarCorrelativas = ref(false)
+const hintId = `bloqueo-${props.materia.id}`
 
-const condicion = computed({
-  get: () => store.condicionDe(props.materia.id),
-  set: (valor: Condicion) => store.setCondicion(props.materia.id, valor),
-})
+const condicion = computed(() => store.condicionDe(props.materia.id))
+const bloqueadaPorLibre = computed(() => store.bloqueadaPorLibre(props.materia.id))
 
-const overview = computed(() => store.overviews[props.materia.id])
-const cargando = computed(() => store.overviewsCargando[props.materia.id])
-const error = computed(() => store.overviewsError[props.materia.id])
-
-function toggleCorrelativas() {
-  mostrarCorrelativas.value = !mostrarCorrelativas.value
-  if (mostrarCorrelativas.value) store.cargarOverview(props.materia.id)
+function cambiarCondicion(event: Event) {
+  store.setCondicion(props.materia.id, (event.target as HTMLSelectElement).value as Condicion)
 }
 </script>
 
 <template>
-  <div class="nodo" :data-condicion="condicion">
-    <div class="fila">
-      <div class="info">
-        <span class="nombre">
-          {{ materia.name }}<span v-if="condicion === 'aprobada'" class="sr-only"> (aprobada)</span>
-        </span>
-        <code v-if="materia.code" class="codigo">{{ materia.code }}</code>
-      </div>
-
-      <div class="acciones">
-        <label :for="selectId" class="sr-only">Condición en {{ materia.name }}</label>
-        <select :id="selectId" v-model="condicion" class="selector">
-          <option v-for="c in CONDICIONES" :key="c.valor" :value="c.valor">{{ c.etiqueta }}</option>
-        </select>
-        <button
-          type="button"
-          class="boton"
-          :aria-expanded="mostrarCorrelativas"
-          :aria-controls="panelId"
-          @click="toggleCorrelativas"
-        >
-          Correlativas
-        </button>
-      </div>
+  <div
+    class="nodo"
+    :class="{ atenuado }"
+    :data-condicion="condicion"
+    :style="{ left: `${x}px`, top: `${y}px`, width: `${NODO_ANCHO}px`, height: `${NODO_ALTO}px` }"
+  >
+    <div class="info">
+      <span class="nombre" :title="materia.name">
+        {{ materia.name }}<span v-if="condicion === 'aprobada'" class="sr-only"> (aprobada)</span>
+      </span>
+      <code v-if="materia.code" class="codigo">{{ materia.code }}</code>
     </div>
 
-    <div v-if="mostrarCorrelativas" :id="panelId" class="correlativas">
-      <p v-if="cargando" class="estado">Cargando correlativas...</p>
-      <p v-else-if="error" class="estado estado-error">{{ error }}</p>
-      <p v-else-if="overview && !overview.prerequisites.length" class="estado">
-        No tiene correlativas.
-      </p>
-      <ul v-else-if="overview" class="lista-correlativas">
-        <li v-for="p in overview.prerequisites" :key="p.id" class="correlativa">
-          <span class="correlativa-nombre" :class="{ tachada: store.condicionDe(p.id) === 'aprobada' }">
-            {{ p.name }}
-          </span>
-          <span v-if="p.requirement" class="requisito">Requiere: {{ p.requirement }}</span>
-          <span class="estado-correlativa">{{ etiquetaCondicion(store.condicionDe(p.id)) }}</span>
-        </li>
-      </ul>
-    </div>
+    <label :for="selectId" class="sr-only">Condición en {{ materia.name }}</label>
+    <select
+      :id="selectId"
+      class="selector"
+      :value="condicion"
+      :disabled="bloqueadaPorLibre"
+      :aria-describedby="bloqueadaPorLibre ? hintId : undefined"
+      @change="cambiarCondicion"
+    >
+      <option v-for="c in CONDICIONES" :key="c.valor" :value="c.valor">{{ c.etiqueta }}</option>
+    </select>
+    <span v-if="bloqueadaPorLibre" :id="hintId" class="sr-only">
+      Bloqueada porque una correlativa está en condición Libre.
+    </span>
   </div>
 </template>
 
 <style scoped>
 .nodo {
+  position: absolute;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  justify-content: space-between;
+  gap: 0.375rem;
+  padding: 0.5rem 0.625rem;
   border: 1px solid var(--border);
-  border-left-width: 1px;
   border-radius: 10px;
+  background: var(--bg);
+  transition: opacity 0.2s, border-color 0.2s;
 }
 
-.nodo[data-condicion='cursable'],
-.nodo[data-condicion='regular'] {
+.nodo:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.nodo[data-condicion='regular'],
+.nodo[data-condicion='libre'] {
   border-color: var(--accent-border);
 }
 
 .nodo[data-condicion='no_cursable'] {
-  opacity: 0.65;
+  border-style: dashed;
 }
 
-.fila {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+.nodo[data-condicion='no_cursable'] .info {
+  opacity: 0.6;
+}
+
+.nodo.atenuado {
+  opacity: 0.35;
 }
 
 .info {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 0.25rem;
   min-width: 0;
 }
 
 .nombre {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
   color: var(--text-h);
+  font-size: 14px;
   font-weight: 500;
+  line-height: 1.25;
 }
 
-.nodo[data-condicion='aprobada'] .nombre,
-.tachada {
+.nodo[data-condicion='aprobada'] .nombre {
   color: var(--text);
   text-decoration: line-through;
   text-decoration-thickness: 2px;
 }
 
 .codigo {
-  align-self: flex-start;
-  font-size: 13px;
-  padding: 2px 6px;
+  font-size: 12px;
+  padding: 1px 6px;
 }
 
-.acciones {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.selector,
-.boton {
-  padding: 0.375rem 0.625rem;
+.selector {
+  width: 100%;
+  padding: 0.25rem 0.5rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--bg);
   color: var(--text-h);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
 
-.selector:focus-visible,
-.boton:focus-visible {
+.selector:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.selector:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-.boton[aria-expanded='true'] {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.correlativas {
-  padding-top: 0.5rem;
-  border-top: 1px dashed var(--border);
-}
-
-.estado {
-  margin: 0;
-  font-size: 14px;
-}
-
-.estado-error {
-  color: #e5484d;
-}
-
-.lista-correlativas {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.correlativa {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 14px;
-}
-
-.correlativa-nombre {
-  color: var(--text-h);
-}
-
-.requisito {
-  color: var(--text);
-}
-
-.estado-correlativa {
-  margin-left: auto;
-  padding: 1px 8px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 12px;
 }
 
 .sr-only {
