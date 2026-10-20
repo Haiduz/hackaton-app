@@ -73,8 +73,7 @@ body:has(.arbol) {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
 }
 
 .barra {
