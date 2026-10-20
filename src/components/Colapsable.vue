@@ -4,12 +4,14 @@ let contador = 0
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { Urgencia } from '../utils/fechas'
 
 withDefaults(
   defineProps<{
     titulo: string
     subtitulo?: string
     badge?: string
+    badgeUrgencia?: Urgencia
     variante?: 'anio' | 'cuatrimestre' | 'materia'
     superado?: boolean
   }>(),
@@ -37,7 +39,7 @@ const abierto = ref(false)
           </span>
           <span v-if="subtitulo" class="colapsable-sub">{{ subtitulo }}</span>
         </span>
-        <span v-if="badge" class="colapsable-badge">{{ badge }}</span>
+        <span v-if="badge" class="colapsable-badge" :data-urgencia="badgeUrgencia">{{ badge }}</span>
         <span class="colapsable-flecha" aria-hidden="true" />
       </button>
     </h4>
@@ -144,6 +146,12 @@ const abierto = ref(false)
   color: var(--accent);
   font-size: 13px;
   white-space: nowrap;
+}
+
+.colapsable-badge[data-urgencia] {
+  background: color-mix(in srgb, var(--tono) 16%, transparent);
+  color: var(--tono);
+  font-weight: 600;
 }
 
 .colapsable-flecha {

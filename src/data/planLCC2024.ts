@@ -80,6 +80,18 @@ export const CODIGO_PLAN_POR_CODIGO_API: Record<string, string> = {
   r523: 'T1032',
 }
 
+// Las sesiones de estudio se registran con el id numérico del plan anterior (r112 -> 112).
+const ID_ESTUDIO_POR_CODIGO_PLAN: Record<string, number> = Object.fromEntries(
+  Object.entries(CODIGO_PLAN_POR_CODIGO_API).map(([codigoApi, codigoPlan]) => [
+    codigoPlan,
+    Number(codigoApi.slice(1)),
+  ]),
+)
+
+export function idEstudioDeCodigoPlan(codigo: string | null | undefined): number | null {
+  return codigo ? (ID_ESTUDIO_POR_CODIGO_PLAN[codigo] ?? null) : null
+}
+
 export function requisitosDelPlan(codigo: string): string[] | null {
   const materia = PLAN_LCC_2024[codigo]
   if (!materia) return null

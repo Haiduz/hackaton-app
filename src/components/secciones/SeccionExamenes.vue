@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { idEstudioDeCodigoPlan } from '../../data/planLCC2024'
+import { useEstudioStore } from '../../stores/estudio'
 import { useMateriasStore, type TipoExamen } from '../../stores/materias'
 import { ETIQUETA_TIPO } from '../../utils/calendario'
+import { horasMinutos } from '../../utils/estudio'
 import {
   calcularRestante,
   combinarFechaHora,
-  limitesFechaExamen,
+  enmascararFecha,
+  fechaLatinaAIso,
   useAhora,
   validarFechaExamen,
 } from '../../utils/fechas'
@@ -14,7 +18,18 @@ import CuentaRegresiva from './CuentaRegresiva.vue'
 const props = defineProps<{ materiaId: number }>()
 
 const store = useMateriasStore()
+const estudio = useEstudioStore()
 const ahora = useAhora()
+
+const estudiado = computed(() => {
+  const codigo = store.disponibles.find(m => m.id === props.materiaId)?.code
+  const idEstudio = idEstudioDeCodigoPlan(codigo)
+  const segundos = estudio.sesiones.reduce(
+    (suma, s) => (s.materiaId === idEstudio ? suma + s.foco : suma),
+    0,
+  )
+  return horasMinutos(segundos)
+})
 
 const tipos = Object.entries(ETIQUETA_TIPO) as [TipoExamen, string][]
 const tipo = ref<TipoExamen>('parcial')
@@ -24,7 +39,6 @@ const hora = ref('09:00')
 const error = ref<string | null>(null)
 
 const uid = `examen-${props.materiaId}`
-const limites = computed(() => limitesFechaExamen(ahora.value))
 
 const examenes = computed(() =>
   store.examenesDe(props.materiaId).map(e => {
@@ -46,13 +60,24 @@ const formato = new Intl.DateTimeFormat('es-AR', {
   minute: '2-digit',
 })
 
+function alEscribirFecha(evento: Event) {
+  const campo = evento.target as HTMLInputElement
+  fecha.value = enmascararFecha(campo.value)
+  campo.value = fecha.value
+}
+
 function agregar() {
-  error.value = validarFechaExamen(fecha.value, hora.value, new Date())
+  const fechaIso = fechaLatinaAIso(fecha.value)
+  if (!fechaIso) {
+    error.value = 'Ingresá una fecha válida con el formato dd/mm/aaaa.'
+    return
+  }
+  error.value = validarFechaExamen(fechaIso, hora.value, new Date())
   if (error.value) return
   const agregado = store.agregarExamen(props.materiaId, {
     tipo: tipo.value,
     titulo: titulo.value.trim() || ETIQUETA_TIPO[tipo.value],
-    fecha: fecha.value,
+    fecha: fechaIso,
     hora: hora.value,
   })
   if (!agregado) {
@@ -71,8 +96,14 @@ function agregar() {
       :restante="restante"
       :titulo="proximo.titulo"
       :cuando="formato.format(proximo.objetivo)"
+      :estudiado="estudiado"
     />
-    <p v-else class="vacio">No hay exámenes próximos.</p>
+    <template v-else>
+      <p class="vacio">No hay exámenes próximos.</p>
+      <p class="vacio">
+        Estudiaste <strong class="vacio-valor">{{ estudiado }}</strong> en total en esta materia
+      </p>
+    </template>
 
     <ul v-if="examenes.length" class="lista">
       <li v-for="e in examenes" :key="e.id" class="item" :class="{ pasado: e.pasado }">
@@ -108,11 +139,14 @@ function agregar() {
           <span>Fecha</span>
           <input
             :id="`${uid}-fecha`"
-            v-model="fecha"
-            type="date"
+            :value="fecha"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="dd/mm/aaaa"
+            maxlength="10"
             required
-            :min="limites.min"
-            :max="limites.max"
+            @input="alEscribirFecha"
           />
         </label>
         <label :for="`${uid}-hora`" class="campo">
@@ -138,6 +172,10 @@ function agregar() {
 .error {
   margin: 0;
   font-size: 14px;
+}
+
+.vacio-valor {
+  color: var(--text-h);
 }
 
 .error {

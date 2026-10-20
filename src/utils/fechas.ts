@@ -9,6 +9,41 @@ export function aIsoLocal(fecha: Date): string {
   return `${fecha.getFullYear()}-${dosDigitos(fecha.getMonth() + 1)}-${dosDigitos(fecha.getDate())}`
 }
 
+// Fecha en formato dd/mm/aaaa: el input nativo de tipo date usa el formato del navegador y no se puede forzar.
+export function enmascararFecha(texto: string): string {
+  const digitos = texto.replace(/\D/g, '').slice(0, 8)
+  if (digitos.length <= 2) return digitos
+  if (digitos.length <= 4) return `${digitos.slice(0, 2)}/${digitos.slice(2)}`
+  return `${digitos.slice(0, 2)}/${digitos.slice(2, 4)}/${digitos.slice(4)}`
+}
+
+// Devuelve YYYY-MM-DD, o null si el texto no es una fecha real (p. ej. 31/02/2026).
+export function fechaLatinaAIso(texto: string): string | null {
+  const partes = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(texto)
+  if (!partes) return null
+  const dia = Number(partes[1])
+  const mes = Number(partes[2])
+  const anio = Number(partes[3])
+  const fecha = new Date(anio, mes - 1, dia)
+  const valida = fecha.getFullYear() === anio && fecha.getMonth() === mes - 1 && fecha.getDate() === dia
+  return valida ? `${anio}-${dosDigitos(mes)}-${dosDigitos(dia)}` : null
+}
+
+export function isoAFechaLatina(iso: string): string {
+  const [anio, mes, dia] = iso.split('-')
+  return `${dia}/${mes}/${anio}`
+}
+
+export type Urgencia = 'lejos' | 'medio' | 'cerca' | 'urgente'
+
+// Verde lejos, amarillo a mitad de camino, naranja y rojo cuando se acerca.
+export function urgenciaPorDias(dias: number): Urgencia {
+  if (dias > 14) return 'lejos'
+  if (dias >= 7) return 'medio'
+  if (dias >= 3) return 'cerca'
+  return 'urgente'
+}
+
 export function limitesFechaExamen(hoy = new Date()) {
   const dentroDeUnAnio = new Date(hoy)
   dentroDeUnAnio.setFullYear(hoy.getFullYear() + 1)

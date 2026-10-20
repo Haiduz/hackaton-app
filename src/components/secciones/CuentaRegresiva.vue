@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Restante } from '../../utils/fechas'
+import { urgenciaPorDias, type Restante } from '../../utils/fechas'
 
 const props = defineProps<{
   restante: Restante
   titulo: string
   cuando: string
+  estudiado: string
 }>()
+
+const urgencia = computed(() => urgenciaPorDias(props.restante.dias))
 
 const unidades = computed(() => [
   { valor: props.restante.dias, etiqueta: 'días' },
@@ -22,7 +25,7 @@ const textoAccesible = computed(
 </script>
 
 <template>
-  <div class="reloj">
+  <div class="reloj" :data-urgencia="urgencia">
     <p class="reloj-encabezado">
       Próximo: <strong>{{ titulo }}</strong> · {{ cuando }}
     </p>
@@ -33,6 +36,9 @@ const textoAccesible = computed(
         <span class="unidad-etiqueta">{{ u.etiqueta }}</span>
       </div>
     </div>
+    <p class="reloj-estudio">
+      Estudiaste <strong>{{ estudiado }}</strong> en total en esta materia
+    </p>
   </div>
 </template>
 
@@ -42,18 +48,27 @@ const textoAccesible = computed(
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--tono) 45%, transparent);
   border-radius: 10px;
-  background: var(--accent-bg);
+  background: color-mix(in srgb, var(--tono) 12%, transparent);
+  transition: background-color 0.4s, border-color 0.4s;
 }
 
-.reloj-encabezado {
+.reloj-encabezado,
+.reloj-estudio {
   margin: 0;
   font-size: 14px;
   color: var(--text);
 }
 
-.reloj-encabezado strong {
+.reloj-encabezado strong,
+.reloj-estudio strong {
   color: var(--text-h);
+}
+
+.reloj-estudio {
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--tono) 30%, transparent);
 }
 
 .reloj-unidades {
@@ -77,7 +92,7 @@ const textoAccesible = computed(
   font-size: 22px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
+  color: var(--tono);
 }
 
 .unidad-etiqueta {

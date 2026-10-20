@@ -238,3 +238,20 @@ body {
   height: 0.7rem;
   border-radius: 3px;
 }
+
+/* Tono de los recordatorios de examen: verde lejos, amarillo, naranja y rojo cerca. */
+[data-urgencia='lejos'] {
+  --tono: #2fb26a;
+}
+
+[data-urgencia='medio'] {
+  --tono: #e0a800;
+}
+
+[data-urgencia='cerca'] {
+  --tono: #f07b21;
+}
+
+[data-urgencia='urgente'] {
+  --tono: #e5484d;
+}
