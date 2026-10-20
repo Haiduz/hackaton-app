@@ -90,7 +90,8 @@ provide("navegar", (tab: string) => {
   color: #fff;
 }
 .view-container {
-  padding: 1rem 1rem calc(64px + 1rem + env(safe-area-inset-bottom));
+  flex: 1;
+  padding: 1rem;
   text-align: left;
 }
 </style>
