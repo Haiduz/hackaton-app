@@ -74,7 +74,7 @@ onMounted(() => store.cargarOverview(props.materia.id))
 <style scoped>
 .campus-link {
   font-size: 14px;
-  color: var(--accent);
+  color: var(--accent-text);
   overflow-wrap: anywhere;
 }
 

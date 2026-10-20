@@ -297,7 +297,7 @@ const detalle = computed(() => {
   height: 3.5rem;
   border-radius: 50%;
   background: var(--calor-1);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .vacio h3 {

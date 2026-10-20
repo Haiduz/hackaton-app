@@ -152,7 +152,7 @@ function contadorTexto(cantidad: number) {
 
 .contador {
   font-size: 14px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .estado {
@@ -227,7 +227,7 @@ function contadorTexto(cantidad: number) {
 .selector[data-condicion='regular'],
 .selector[data-condicion='libre'] {
   border-color: var(--accent-border);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .selector:disabled {

@@ -144,7 +144,7 @@ const dona = computed(() =>
 dt {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 dd {

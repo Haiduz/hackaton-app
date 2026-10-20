@@ -122,7 +122,7 @@ svg {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .descanso .etiqueta {

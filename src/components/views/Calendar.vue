@@ -483,7 +483,7 @@ const superpuestoCon = computed(() => {
 .segmentado button.activo {
   background: var(--accent-bg);
   border-color: var(--accent-border);
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
   position: relative;
 }

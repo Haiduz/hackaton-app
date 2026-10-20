@@ -106,7 +106,7 @@ const diferencia = computed(
 }
 
 .dif.positiva {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .leyenda {

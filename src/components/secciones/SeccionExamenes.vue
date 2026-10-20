@@ -286,7 +286,7 @@ function agregar() {
   padding: 0.5rem 1rem;
   border: 1px solid var(--accent-border);
   background: var(--accent-bg);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .quitar {

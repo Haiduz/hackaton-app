@@ -293,7 +293,7 @@ function etiqueta(e: EventoCalendario): string {
 }
 
 .cab-dia.hoy {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .cab-dia.hoy .numero {

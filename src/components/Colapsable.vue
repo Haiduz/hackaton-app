@@ -144,7 +144,7 @@ const abierto = ref(false)
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--accent-bg);
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 13px;
   white-space: nowrap;
 }

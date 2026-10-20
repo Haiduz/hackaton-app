@@ -170,7 +170,7 @@ const niveles = computed(() => {
 .n2 { background: var(--calor-2); }
 .n3 { background: var(--calor-3); }
 .n4 { background: var(--calor-4); color: var(--on-accent); }
-.n5 { background: var(--calor-5); color: var(--on-accent); }
+.n5 { background: var(--calor-5); color: #fff; }
 
 .pie {
   display: flex;

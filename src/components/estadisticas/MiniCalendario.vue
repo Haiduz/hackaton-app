@@ -199,7 +199,7 @@ const mensajeRacha = computed(() => {
   padding: 0.15rem 0.25rem;
   border: none;
   background: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font: inherit;
   font-size: 0.78rem;
   cursor: pointer;
@@ -397,7 +397,7 @@ const mensajeRacha = computed(() => {
 }
 
 .racha.viva .llama {
-  color: var(--accent);
+  color: var(--accent-text);
   opacity: 1;
 }
 

@@ -129,7 +129,7 @@ import {
 }
 
 .nav-item.active {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
@@ -152,7 +152,7 @@ import {
 }
 .nav-item-highlight.active span {
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
 } 
 
 </style>

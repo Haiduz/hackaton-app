@@ -64,7 +64,7 @@ const descripcion = computed(() => {
 }
 
 .racha-materia.viva .llama {
-  color: var(--accent);
+  color: var(--accent-text);
   opacity: 1;
 }
 
