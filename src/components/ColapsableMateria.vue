@@ -3,19 +3,30 @@ import { computed, onMounted } from 'vue'
 import { useMateriasStore, type Materia } from '../stores/materias'
 import Colapsable from './Colapsable.vue'
 import SeccionHorarios from './secciones/SeccionHorarios.vue'
+import SeccionExamenes from './secciones/SeccionExamenes.vue'
+import { calcularRestante, combinarFechaHora, restanteCorto, useAhora } from '../utils/fechas'
 
 const props = defineProps<{
   materia: Materia
 }>()
 
 const store = useMateriasStore()
+const ahora = useAhora()
 const campusUrl = computed(() => store.overviews[props.materia.id]?.campus_url ?? null)
+
+const badgeExamen = computed(() => {
+  for (const e of store.examenesDe(props.materia.id)) {
+    const restante = calcularRestante(combinarFechaHora(e.fecha, e.hora), ahora.value)
+    if (restante) return restanteCorto(restante)
+  }
+  return undefined
+})
 
 onMounted(() => store.cargarOverview(props.materia.id))
 </script>
 
 <template>
-  <Colapsable :titulo="materia.name" :subtitulo="materia.code ?? undefined" variante="materia">
+  <Colapsable :titulo="materia.name" :subtitulo="materia.code ?? undefined" :badge="badgeExamen" variante="materia">
     <slot>
       <!-- Cada sección tendrá su propio componente y su propia petición a la API -->
       <section v-if="campusUrl" class="seccion">
@@ -37,7 +48,7 @@ onMounted(() => store.cargarOverview(props.materia.id))
 
       <section class="seccion">
         <h5 class="seccion-titulo">Exámenes</h5>
-        <div class="seccion-vacia"></div>
+        <SeccionExamenes :materia-id="materia.id" />
       </section>
     </slot>
   </Colapsable>

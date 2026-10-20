@@ -47,6 +47,13 @@ export interface MateriaOverview extends Materia {
   prerequisites: Correlativa[]
 }
 
+export interface Examen {
+  id: number
+  titulo: string
+  fecha: string // YYYY-MM-DD
+  hora: string // HH:mm
+}
+
 export type Condicion = 'no_cursable' | 'cursable' | 'regular' | 'aprobada'
 
 export const CONDICIONES: { valor: Condicion; etiqueta: string }[] = [
@@ -163,7 +170,28 @@ export const useMateriasStore = defineStore('materias', () => {
     else if (esSeleccionable(materia.id)) seleccionadas.value.push(materia)
   }
 
+  const examenes = ref<Record<number, Examen[]>>({})
+  let siguienteExamenId = 1
+
+  function examenesDe(materiaId: number): Examen[] {
+    return examenes.value[materiaId] ?? []
+  }
+
+  function agregarExamen(materiaId: number, datos: Omit<Examen, 'id'>) {
+    const lista = [...examenesDe(materiaId), { ...datos, id: siguienteExamenId++ }]
+    lista.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora))
+    examenes.value[materiaId] = lista
+  }
+
+  function quitarExamen(materiaId: number, examenId: number) {
+    examenes.value[materiaId] = examenesDe(materiaId).filter(e => e.id !== examenId)
+  }
+
   return {
+    examenes,
+    examenesDe,
+    agregarExamen,
+    quitarExamen,
     disponibles,
     seleccionadas,
     condiciones,
