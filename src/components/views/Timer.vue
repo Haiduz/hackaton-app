@@ -7,6 +7,7 @@ import RelojCircular from '../estudio/RelojCircular.vue'
 import SelectorMateria from '../estudio/SelectorMateria.vue'
 import EditorIntervalos from '../estudio/EditorIntervalos.vue'
 import ChipMateria from '../estudio/ChipMateria.vue'
+import { habilitarSonido, sonidoFinDescanso, sonidoFinFoco } from '../../utils/sonidos'
 
 type Modo = 'pomodoro' | 'cronometro'
 type Estado = 'inicial' | 'corriendo' | 'pausado' | 'finalizado'
@@ -59,13 +60,19 @@ function tick() {
     faseTranscurrido.value += avance
     return
   }
+  let faseTerminada: Fase | null = null
   while (avance > 0) {
     const paso = Math.min(avance, duracionFase.value - faseTranscurrido.value)
     faseTranscurrido.value += paso
     if (fase.value === 'foco') focoAcumulado.value += paso
     avance -= paso
-    if (faseTranscurrido.value >= duracionFase.value) avanzarFase()
+    if (faseTranscurrido.value >= duracionFase.value) {
+      faseTerminada = fase.value
+      avanzarFase()
+    }
   }
+  if (faseTerminada === 'foco') sonidoFinFoco()
+  else if (faseTerminada) sonidoFinDescanso()
 }
 
 function avanzarFase() {
@@ -97,6 +104,7 @@ function iniciar() {
     selectorAbierto.value = true
     return
   }
+  habilitarSonido()
   reiniciarContadores()
   ultima.value = null
   inicio.value = new Date()
