@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, type Component } from "vue";
+import { computed, provide, ref, type Component } from "vue";
 import { UserRound } from "lucide-vue-next";
 import bottomNavigation from "./components/BottomNavBar.vue";
 import Home from "./components/views/Home.vue";
@@ -8,8 +8,10 @@ import Tree from "./components/views/Tree.vue";
 import Stats from "./components/views/Stats.vue";
 import Calendar from "./components/views/Calendar.vue";
 import Subjects from "./components/views/Subjects.vue";
+import Records from "./components/views/Records.vue";
 
 const views: Record<string, Component> = {
+  registros: Records,
   inicio: Home,
   timer: Timer,
   tree: Tree,
@@ -20,6 +22,11 @@ const views: Record<string, Component> = {
 
 const activeTab = ref("inicio")
 const activeView = computed(() => views[activeTab.value] ?? Home)
+
+provide("navegar", (tab: string) => {
+  activeTab.value = tab
+  window.scrollTo({ top: 0 })
+})
 </script>
 
 <template>
