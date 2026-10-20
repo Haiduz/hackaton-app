@@ -82,6 +82,9 @@ provide("navegar", (tab: string) => {
 
 .app-title {
   margin: 0;
+  font-family: "Monocraft", ui-monospace, monospace;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 .subjects-button {
