@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
-import { Check, Lock } from 'lucide-vue-next'
+import { Clock } from 'lucide-vue-next'
 import { etiquetaCondicion, useMateriasStore, type Materia } from '../../stores/materias'
 import { NODO_ALTO, NODO_ANCHO } from '../../utils/arbol'
 
@@ -13,6 +13,21 @@ const store = useMateriasStore()
 
 const condicion = computed(() => store.condicionDe(props.data.materia.id))
 const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
+
+const tiempoEstudio = computed(() => {
+  const total = store.minutosEstudioDe(props.data.materia.id)
+  const horas = Math.floor(total / 60)
+  const minutos = total % 60
+  if (horas === 0) return `${minutos} min`
+  return minutos === 0 ? `${horas} h` : `${horas} h ${minutos} min`
+})
+
+const descripcionAccesible = computed(() => {
+  const base = `Condición: ${etiquetaCondicion(condicion.value)}`
+  if (motivo.value === 'libre') return `${base}, bloqueada porque una correlativa está en condición Libre`
+  if (motivo.value === 'correlativas') return `${base}, bloqueada porque faltan correlativas Regulares`
+  return base
+})
 </script>
 
 <template>
@@ -23,22 +38,16 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
   >
     <Handle type="target" :position="Position.Left" :connectable="false" />
 
-    <div class="cabecera">
-      <code v-if="data.materia.code" class="codigo">{{ data.materia.code }}</code>
-      <span v-else />
-      <Check v-if="condicion === 'aprobada'" class="icono" :size="14" :stroke-width="2.5" aria-hidden="true" />
-      <Lock v-else-if="condicion === 'no_cursable'" class="icono" :size="13" :stroke-width="2.25" aria-hidden="true" />
-    </div>
+    <code v-if="data.materia.code" class="codigo">{{ data.materia.code }}</code>
 
-    <p class="nombre" :title="data.materia.name">
-      {{ data.materia.name }}<span v-if="condicion === 'aprobada'" class="sr-only"> (aprobada)</span>
+    <p class="nombre" :title="data.materia.name">{{ data.materia.name }}</p>
+
+    <p class="tiempo">
+      <Clock :size="13" :stroke-width="2.25" aria-hidden="true" />
+      <span class="sr-only">Tiempo de estudio: </span>{{ tiempoEstudio }}
     </p>
 
-    <span class="estado">
-      {{ etiquetaCondicion(condicion) }}
-      <span v-if="motivo === 'libre'" class="sr-only"> (bloqueada porque una correlativa está en condición Libre)</span>
-      <span v-else-if="motivo === 'correlativas'" class="sr-only"> (bloqueada porque faltan correlativas Regulares)</span>
-    </span>
+    <span class="sr-only">{{ descripcionAccesible }}</span>
 
     <Handle type="source" :position="Position.Right" :connectable="false" />
   </div>
@@ -52,18 +61,17 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
   flex-direction: column;
   gap: 6px;
   padding: 10px 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-left: 0;
+  background: color-mix(in srgb, var(--tono) 30%, var(--bg));
+  border: 2px solid var(--tono);
   border-radius: 10px;
-  box-shadow: inset 4px 0 0 var(--tono), 0 1px 2px rgba(20, 33, 61, 0.08);
+  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.12);
   text-align: left;
   transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .nodo:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 0 0 var(--tono), 0 6px 14px rgba(20, 33, 61, 0.16);
+  box-shadow: 0 6px 14px rgba(20, 33, 61, 0.22);
 }
 
 .nodo:focus-within {
@@ -78,10 +86,12 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
 
 .condicion-no_cursable {
   border-style: dashed;
+  background: color-mix(in srgb, var(--tono) 14%, var(--bg));
 }
 
-.condicion-no_cursable .nombre {
-  opacity: 0.65;
+.condicion-no_cursable .nombre,
+.condicion-no_cursable .tiempo {
+  opacity: 0.7;
 }
 
 .atenuada {
@@ -89,27 +99,15 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
 }
 
 .resaltada {
-  box-shadow: inset 4px 0 0 var(--tono), 0 0 0 2px var(--accent), 0 6px 14px rgba(20, 33, 61, 0.2);
-}
-
-.cabecera {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 20px;
+  box-shadow: 0 0 0 3px var(--accent), 0 6px 14px rgba(20, 33, 61, 0.28);
 }
 
 .codigo {
+  align-self: flex-start;
   padding: 1px 6px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
-}
-
-.icono {
-  flex-shrink: 0;
-  color: var(--tono);
 }
 
 .nombre {
@@ -126,21 +124,18 @@ const motivo = computed(() => store.motivoBloqueo(props.data.materia.id))
 }
 
 .condicion-aprobada .nombre {
-  color: var(--text);
   text-decoration: line-through;
   text-decoration-thickness: 2px;
 }
 
-.estado {
-  align-self: flex-start;
-  margin-top: auto;
-  padding: 2px 8px;
-  border: 1px solid color-mix(in srgb, var(--tono) 55%, var(--border));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--tono) 10%, var(--bg));
+.tiempo {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: auto 0 0;
   color: var(--text-h);
+  font-family: var(--mono);
   font-size: 12px;
-  font-weight: 500;
 }
 
 .sr-only {

@@ -255,7 +255,21 @@ export const useMateriasStore = defineStore('materias', () => {
     examenes.value[materiaId] = examenesDe(materiaId).filter(e => e.id !== examenId)
   }
 
+  const minutosEstudio = ref<Record<number, number>>({})
+
+  function minutosEstudioDe(materiaId: number): number {
+    return minutosEstudio.value[materiaId] ?? 0
+  }
+
+  function registrarEstudio(materiaId: number, minutos: number) {
+    if (!Number.isFinite(minutos) || minutos <= 0) return
+    minutosEstudio.value[materiaId] = minutosEstudioDe(materiaId) + minutos
+  }
+
   return {
+    minutosEstudio,
+    minutosEstudioDe,
+    registrarEstudio,
     examenes,
     examenesDe,
     agregarExamen,
