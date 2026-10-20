@@ -9,19 +9,23 @@ import {
 import MapaCalor from '../estadisticas/MapaCalor.vue'
 import DetalleDia from '../estadisticas/DetalleDia.vue'
 import DetallePeriodo from '../estadisticas/DetallePeriodo.vue'
+import ResumenGlobal from '../estadisticas/ResumenGlobal.vue'
 
 type Pestania = 'dia' | 'semana' | 'mes'
+type PestaniaVisible = Pestania | 'global'
 
 const store = useEstudioStore()
 const navegar = inject<(tab: string) => void>('navegar', () => {})
 
 const hoy = new Date()
 const hoyClave = clave(hoy)
-const pestania = ref<Pestania>('dia')
-const PESTANIAS: { id: Pestania; nombre: string }[] = [
+const pestaniaVisible = ref<PestaniaVisible>('dia')
+const pestania = computed<Pestania>(() => (pestaniaVisible.value === 'global' ? 'dia' : pestaniaVisible.value))
+const PESTANIAS: { id: PestaniaVisible; nombre: string }[] = [
   { id: 'dia', nombre: 'Día' },
   { id: 'semana', nombre: 'Semana' },
   { id: 'mes', nombre: 'Mes' },
+  { id: 'global', nombre: 'Global' },
 ]
 
 const cursor = reactive({
@@ -212,16 +216,19 @@ const detalle = computed(() => {
           type="button"
           role="tab"
           class="pildora"
-          :class="{ activa: pestania === p.id }"
-          :aria-selected="pestania === p.id"
-          @click="pestania = p.id"
+          :class="{ activa: pestaniaVisible === p.id }"
+          :aria-selected="pestaniaVisible === p.id"
+          @click="pestaniaVisible = p.id"
         >
           {{ p.nombre }}
         </button>
       </div>
 
       <Transition name="vista" mode="out-in">
-        <div :key="pestania" class="contenido" role="tabpanel">
+        <div v-if="pestaniaVisible === 'global'" key="global" class="contenido" role="tabpanel">
+          <ResumenGlobal />
+        </div>
+        <div v-else :key="pestania" class="contenido" role="tabpanel">
           <MapaCalor
             :titulo="mapa.titulo"
             :celdas="mapa.celdas"

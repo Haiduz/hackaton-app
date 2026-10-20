@@ -6,6 +6,7 @@ import { clave, hmm, hmmss, horasMinutos, pad, reloj, type ConfigPomodoro, type 
 import RelojCircular from '../estudio/RelojCircular.vue'
 import SelectorMateria from '../estudio/SelectorMateria.vue'
 import EditorIntervalos from '../estudio/EditorIntervalos.vue'
+import ChipMateria from '../estudio/ChipMateria.vue'
 
 type Modo = 'pomodoro' | 'cronometro'
 type Estado = 'inicial' | 'corriendo' | 'pausado' | 'finalizado'
@@ -343,7 +344,7 @@ const hoyPorMateria = computed(() => {
 
     <ul v-if="hoyPorMateria.length" class="hoy-materias" aria-label="Foco de hoy por materia">
       <li v-for="m in hoyPorMateria" :key="m.id" :title="m.materia?.nombre">
-        <span class="punto" :style="{ background: m.materia?.color ?? 'var(--text)' }" aria-hidden="true" />
+        <ChipMateria :materia="m.materia" aria-hidden="true" />
         <span class="sr-only">{{ m.materia?.nombre ?? 'Materia' }}: </span>
         <span class="num">{{ hmm(m.seg) }}</span>
       </li>
@@ -649,11 +650,6 @@ const hoyPorMateria = computed(() => {
   gap: 0.35rem;
 }
 
-.hoy-materias .punto {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-}
 
 .sr-only {
   position: absolute;
