@@ -2,11 +2,13 @@
 import { computed, inject } from 'vue'
 import { useEstudioStore } from '../../stores/estudio'
 import {
-  capitalizar, clave, fechaLarga, horasMinutos, inicioSemana, MESES_CORTOS, nivel, sumarDias, UMBRALES,
+  calcularRacha, capitalizar, clave, DIAS_CORTOS, fechaLarga, horasMinutos, inicioSemana, MESES_CORTOS, nivel,
+  sumarDias, UMBRALES,
 } from '../../utils/estudio'
 
 const SEMANAS = 18
 const DIAS_FILA = ['Lun', '', 'Mié', '', 'Vie', '', '']
+const INICIALES = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
 const store = useEstudioStore()
 const navegar = inject<(tab: string) => void>('navegar', () => {})
@@ -44,6 +46,31 @@ const totalPeriodo = computed(() =>
 const diasActivos = computed(() =>
   columnas.value.reduce((a, c) => a + c.dias.filter(d => d.valor > 0).length, 0),
 )
+
+const tiempoHoy = computed(() => store.porDia.get(hoyClave)?.total ?? 0)
+const racha = computed(() => calcularRacha(store.porDia, hoy))
+
+const semanaActual = computed(() => {
+  const lunes = inicioSemana(hoy)
+  return Array.from({ length: 7 }, (_, i) => {
+    const k = clave(sumarDias(lunes, i))
+    return {
+      id: k,
+      inicial: INICIALES[i],
+      nombre: DIAS_CORTOS[i],
+      hecho: (store.porDia.get(k)?.total ?? 0) > 0,
+      hoy: k === hoyClave,
+      futuro: k > hoyClave,
+    }
+  })
+})
+
+const mensajeRacha = computed(() => {
+  const { actual, hoyActivo } = racha.value
+  if (actual === 0) return 'Estudiá hoy para empezar tu racha.'
+  if (!hoyActivo) return 'Estudiá hoy para no perder tu racha.'
+  return actual === 1 ? 'Primer día. Volvé mañana para sumar.' : 'Racha asegurada por hoy. Seguí así.'
+})
 </script>
 
 <template>
@@ -57,6 +84,8 @@ const diasActivos = computed(() =>
       Todavía no hay sesiones. Tu actividad aparece acá cuando estudies.
     </p>
 
+    <div class="contenido">
+    <div class="calendario">
     <div class="cuerpo" :style="{ '--semanas': SEMANAS }">
       <div class="dias" aria-hidden="true">
         <span v-for="(d, i) in DIAS_FILA" :key="i">{{ d }}</span>
@@ -88,6 +117,46 @@ const diasActivos = computed(() =>
         Más
       </span>
     </footer>
+    </div>
+
+    <aside class="resumen" aria-label="Resumen de hoy y racha">
+      <div class="hoy">
+        <span class="etiqueta">Hoy</span>
+        <strong class="tiempo">{{ tiempoHoy > 0 ? horasMinutos(tiempoHoy) : '0 min' }}</strong>
+        <span class="detalle">{{ tiempoHoy > 0 ? 'estudiado' : 'sin estudio todavía' }}</span>
+      </div>
+
+      <div class="racha" :class="{ viva: racha.actual > 0, pendiente: racha.actual > 0 && !racha.hoyActivo }">
+        <div class="racha-cifra">
+          <svg class="llama" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 2c.6 3.2-1 5-2.6 6.8C7.8 10.6 6 12.4 6 15.2 6 18.6 8.6 22 12 22s6-3.1 6-6.6c0-2.2-1-3.9-2.2-5.2-.3 1.2-.9 2-1.8 2.5.5-3.7-.3-7.9-2-10.7Z"
+              fill="currentColor"
+            />
+          </svg>
+          <strong class="racha-numero">{{ racha.actual }}</strong>
+        </div>
+        <span class="etiqueta">{{ racha.actual === 1 ? 'día seguido' : 'días seguidos' }}</span>
+
+        <ul class="semana-racha" aria-label="Días estudiados esta semana">
+          <li
+            v-for="d in semanaActual"
+            :key="d.id"
+            class="dia-racha"
+            :class="{ hecho: d.hecho, hoy: d.hoy, futuro: d.futuro }"
+            :title="`${d.nombre}: ${d.hecho ? 'estudiado' : d.futuro ? 'pendiente' : 'sin estudio'}`"
+          >
+            <span class="punto" />
+            <span class="inicial" aria-hidden="true">{{ d.inicial }}</span>
+            <span class="sr-only">{{ d.nombre }}: {{ d.hecho ? 'estudiado' : 'sin estudio' }}</span>
+          </li>
+        </ul>
+
+        <p class="mensaje">{{ mensajeRacha }}</p>
+        <span v-if="racha.mejor > 0" class="mejor">Mejor racha: {{ racha.mejor }} {{ racha.mejor === 1 ? 'día' : 'días' }}</span>
+      </div>
+    </aside>
+    </div>
   </section>
 </template>
 
@@ -240,5 +309,171 @@ const diasActivos = computed(() =>
 
 .leyenda .celda:last-of-type {
   margin-right: 0.2rem;
+}
+
+.contenido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 1rem 1.5rem;
+}
+
+.calendario {
+  display: flex;
+  flex: 1 1 18rem;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.resumen {
+  display: flex;
+  flex: 1 1 11rem;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+  max-width: 16rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--border);
+}
+
+.etiqueta {
+  font-size: 0.72rem;
+}
+
+.hoy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.tiempo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-h);
+}
+
+.detalle {
+  font-size: 0.72rem;
+}
+
+.racha {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.racha-cifra {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text);
+}
+
+.llama {
+  width: 1.6rem;
+  height: 1.6rem;
+  opacity: 0.35;
+}
+
+.racha-numero {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-h);
+}
+
+.racha.viva .llama {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.racha.pendiente .llama {
+  opacity: 0.55;
+}
+
+.semana-racha {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dia-racha {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.punto {
+  display: block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--calor-0);
+}
+
+.dia-racha.hecho .punto {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.dia-racha.futuro .punto {
+  border-style: dashed;
+  background: transparent;
+}
+
+.dia-racha.hoy .punto {
+  outline: 2px solid var(--accent-border);
+  outline-offset: 2px;
+}
+
+.inicial {
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+.dia-racha.hoy .inicial {
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.mensaje {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-h);
+}
+
+.mejor {
+  font-size: 0.72rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .resumen {
+    max-width: none;
+    padding-top: 1rem;
+    padding-left: 0;
+    border-top: 1px solid var(--border);
+    border-left: none;
+  }
 }
 </style>

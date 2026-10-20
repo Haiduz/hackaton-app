@@ -186,6 +186,39 @@ export function focoPorHora(sesiones: Sesion[]): number[] {
   return horas
 }
 
+export interface Racha {
+  actual: number
+  mejor: number
+  hoyActivo: boolean
+}
+
+const MS_DIA = 86_400_000
+
+// La racha sigue viva si hoy todavía no estudiaste pero ayer sí: se corta recién al terminar el día.
+export function calcularRacha(dias: Map<string, ResumenDia>, hoy: Date): Racha {
+  const activo = (k: string) => (dias.get(k)?.total ?? 0) > 0
+  const hoyActivo = activo(clave(hoy))
+
+  let cursor = hoyActivo ? hoy : sumarDias(hoy, -1)
+  let actual = 0
+  while (activo(clave(cursor))) {
+    actual++
+    cursor = sumarDias(cursor, -1)
+  }
+
+  const claves = [...dias.keys()].filter(activo).sort()
+  let mejor = 0
+  let corrida = 0
+  claves.forEach((k, i) => {
+    const consecutivo = i > 0
+      && Math.round((desdeClave(k).getTime() - desdeClave(claves[i - 1]).getTime()) / MS_DIA) === 1
+    corrida = consecutivo ? corrida + 1 : 1
+    mejor = Math.max(mejor, corrida)
+  })
+
+  return { actual, mejor: Math.max(mejor, actual), hoyActivo }
+}
+
 export function acumular(valores: number[]): number[] {
   let suma = 0
   return valores.map(v => (suma += v))
