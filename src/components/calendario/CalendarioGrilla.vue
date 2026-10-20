@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import {
+  claveFecha,
   formatearMinutos,
   mismoDia,
   posicionar,
   type EventoCalendario,
+  type ExamenCalendario,
 } from '../../utils/calendario'
 import { nombreDia, textoAula } from '../../utils/horarios'
+import ListaExamenes from './ListaExamenes.vue'
 
 interface DiaGrilla {
   fecha: Date
@@ -18,6 +21,7 @@ const ALTO_HORA = 56
 const props = defineProps<{
   dias: DiaGrilla[]
   eventos: EventoCalendario[]
+  examenes: ExamenCalendario[]
   conflictoIds: Set<number>
   horaInicio: number
   horaFin: number
@@ -33,12 +37,18 @@ const altoTotal = computed(() => (props.horaFin - props.horaInicio) * ALTO_HORA)
 const base = computed(() => props.horaInicio * 60)
 
 const columnas = computed(() =>
-  props.dias.map(dia => ({
-    ...dia,
-    esHoy: mismoDia(dia.fecha, props.ahora),
-    eventos: posicionar(props.eventos.filter(e => e.weekday === dia.weekday)),
-  })),
+  props.dias.map(dia => {
+    const clave = claveFecha(dia.fecha)
+    return {
+      ...dia,
+      esHoy: mismoDia(dia.fecha, props.ahora),
+      eventos: posicionar(props.eventos.filter(e => e.weekday === dia.weekday)),
+      examenes: props.examenes.filter(x => x.fecha === clave),
+    }
+  }),
 )
+
+const examenesSemana = computed(() => columnas.value.flatMap(c => c.examenes))
 
 const minutosAhora = computed(() => props.ahora.getHours() * 60 + props.ahora.getMinutes())
 const lineaAhoraVisible = computed(
@@ -51,10 +61,14 @@ function estilo(e: { inicio: number; fin: number; columna: number; columnas: num
   return {
     top: `${((e.inicio - base.value) / 60) * ALTO_HORA}px`,
     height: `${((e.fin - e.inicio) / 60) * ALTO_HORA - 2}px`,
-    left: `calc(${e.columna * ancho}% + 2px)`,
-    width: `calc(${ancho}% - 5px)`,
+    left: `calc(${e.columna * ancho}% + 1px)`,
+    width: `calc(${ancho}% - 2px)`,
     '--hue': e.hue,
   }
+}
+
+function corto(e: EventoCalendario): string {
+  return e.codigo ?? e.materia.slice(0, 3)
 }
 
 function etiqueta(e: EventoCalendario): string {
@@ -70,13 +84,30 @@ function etiqueta(e: EventoCalendario): string {
     role="group"
     aria-label="Horarios semanales"
   >
-    <div class="interna" :class="{ multiple: dias.length > 1 }">
-      <div class="cabecera">
-        <div class="gutter" />
-        <div v-for="c in columnas" :key="c.weekday" class="cab-dia" :class="{ hoy: c.esHoy }">
-          <span class="nombre">{{ nombreDia(c.weekday).slice(0, 3) }}</span>
-          <span class="numero">{{ c.fecha.getDate() }}</span>
+    <div class="interna">
+      <div class="fijo">
+        <div class="cabecera">
+          <div class="gutter" />
+          <div v-for="c in columnas" :key="c.weekday" class="cab-dia" :class="{ hoy: c.esHoy }">
+            <span class="nombre">{{ nombreDia(c.weekday).slice(0, 3) }}</span>
+            <span class="numero">{{ c.fecha.getDate() }}</span>
+            <span class="marcas" aria-hidden="true">
+              <i
+                v-for="x in c.examenes.slice(0, 3)"
+                :key="x.id"
+                class="marca"
+                :style="{ '--hue': x.hue }"
+              />
+            </span>
+          </div>
         </div>
+
+        <ListaExamenes
+          v-if="examenesSemana.length"
+          class="examenes"
+          :examenes="examenesSemana"
+          titulo="Exámenes de la semana"
+        />
       </div>
 
       <div class="cuerpo" :style="{ height: `${altoTotal}px` }">
@@ -87,7 +118,10 @@ function etiqueta(e: EventoCalendario): string {
             class="hora"
             :style="{ top: `${i * ALTO_HORA}px` }"
           >
-            <template v-if="i > 0">{{ String(h).padStart(2, '0') }}:00</template>
+            <template v-if="i > 0">
+              <span class="hora-larga">{{ String(h).padStart(2, '0') }}:00</span>
+              <span class="hora-corta">{{ h }}</span>
+            </template>
           </span>
         </div>
 
@@ -115,7 +149,8 @@ function etiqueta(e: EventoCalendario): string {
                 <path d="M12 3 2 21h20L12 3Z" />
                 <path d="M12 10v5M12 18h.01" />
               </svg>
-              {{ e.materia }}
+              <span class="nombre-largo">{{ e.materia }}</span>
+              <span class="nombre-corto">{{ corto(e) }}</span>
             </span>
             <span class="evento-hora">
               {{ formatearMinutos(e.inicio) }} - {{ formatearMinutos(e.fin) }}
@@ -139,16 +174,14 @@ function etiqueta(e: EventoCalendario): string {
 
 <style scoped>
 .grilla {
+  container-type: inline-size;
   max-height: calc(100svh - 300px);
-  min-height: 360px;
-  overflow: auto;
+  min-height: 320px;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--bg);
-}
-
-.interna.multiple {
-  min-width: 640px;
 }
 
 .cabecera,
@@ -157,7 +190,7 @@ function etiqueta(e: EventoCalendario): string {
   grid-template-columns: 3.25rem repeat(var(--cols), minmax(0, 1fr));
 }
 
-.cabecera {
+.fijo {
   position: sticky;
   top: 0;
   z-index: 3;
@@ -165,12 +198,17 @@ function etiqueta(e: EventoCalendario): string {
   border-bottom: 1px solid var(--border);
 }
 
+.examenes {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
 .cab-dia {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 0.5rem 0;
+  padding: 0.5rem 0 0.35rem;
   border-left: 1px solid var(--border);
   font-size: 12px;
   text-transform: uppercase;
@@ -198,6 +236,19 @@ function etiqueta(e: EventoCalendario): string {
   color: #fff;
 }
 
+.marcas {
+  display: flex;
+  gap: 2px;
+  min-height: 6px;
+}
+
+.marca {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(var(--hue) 55% 40%);
+}
+
 .horas {
   position: relative;
 }
@@ -208,6 +259,10 @@ function etiqueta(e: EventoCalendario): string {
   transform: translateY(-50%);
   font-size: 11px;
   color: var(--text);
+}
+
+.hora-corta {
+  display: none;
 }
 
 .columna {
@@ -281,6 +336,10 @@ function etiqueta(e: EventoCalendario): string {
   font-weight: 600;
 }
 
+.nombre-corto {
+  display: none;
+}
+
 .evento-hora,
 .evento-aula {
   opacity: 0.92;
@@ -316,5 +375,63 @@ function etiqueta(e: EventoCalendario): string {
   height: 10px;
   border-radius: 50%;
   background: #e5484d;
+}
+
+/* Celulares: 7 días comprimidos, el detalle se ve al tocar el bloque. */
+@container (max-width: 520px) {
+  .cabecera,
+  .cuerpo {
+    grid-template-columns: 1.5rem repeat(var(--cols), minmax(0, 1fr));
+  }
+
+  .cab-dia {
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+
+  .numero {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 14px;
+  }
+
+  .hora {
+    right: 0.25rem;
+    font-size: 10px;
+  }
+
+  .hora-larga {
+    display: none;
+  }
+
+  .hora-corta {
+    display: inline;
+  }
+
+  .evento {
+    padding: 2px;
+    border-radius: 4px;
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .evento-titulo {
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .nombre-largo,
+  .evento-hora,
+  .evento-aula,
+  .icono-alerta {
+    display: none;
+  }
+
+  .nombre-corto {
+    display: inline;
+    overflow: hidden;
+    text-overflow: clip;
+  }
 }
 </style>

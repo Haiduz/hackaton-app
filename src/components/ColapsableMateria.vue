@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useMateriasStore, type Materia } from '../stores/materias'
 import Colapsable from './Colapsable.vue'
+import SeccionExamenes from './secciones/SeccionExamenes.vue'
 import SeccionHorarios from './secciones/SeccionHorarios.vue'
 
 const props = defineProps<{
@@ -37,7 +38,7 @@ onMounted(() => store.cargarOverview(props.materia.id))
 
       <section class="seccion">
         <h5 class="seccion-titulo">Exámenes</h5>
-        <div class="seccion-vacia"></div>
+        <SeccionExamenes :materia-id="materia.id"></SeccionExamenes>
       </section>
     </slot>
   </Colapsable>

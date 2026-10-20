@@ -7,15 +7,16 @@ import {
   formatearMinutos,
   inicioSemana,
   sumarDias,
-  weekdayDe,
   type EventoCalendario,
+  type ExamenCalendario,
 } from '../../utils/calendario'
 import { comisionesUnicas, nombreDia } from '../../utils/horarios'
 import AvisoConflictos from '../calendario/AvisoConflictos.vue'
 import CalendarioGrilla from '../calendario/CalendarioGrilla.vue'
+import CalendarioMes from '../calendario/CalendarioMes.vue'
 import DetalleEvento from '../calendario/DetalleEvento.vue'
 
-type Vista = 'semana' | 'dia'
+type Vista = 'semana' | 'mes'
 
 const HUES = [217, 142, 28, 280, 188, 340, 95, 8]
 
@@ -32,7 +33,7 @@ const errores = computed(() =>
   store.seleccionadas.filter(m => store.overviewsError[m.id]).map(m => m.name),
 )
 
-const vista = ref<Vista>(window.innerWidth < 640 ? 'dia' : 'semana')
+const vista = ref<Vista>('semana')
 const fecha = ref(new Date())
 const ahora = ref(new Date())
 const temporizador = window.setInterval(() => (ahora.value = new Date()), 60_000)
@@ -46,6 +47,7 @@ const eventos = computed<EventoCalendario[]>(() =>
         id: c.id,
         materiaId: m.id,
         materia: m.name,
+        codigo: m.code,
         weekday: c.weekday,
         inicio: aMinutos(c.start_time),
         fin: aMinutos(c.end_time),
@@ -56,8 +58,24 @@ const eventos = computed<EventoCalendario[]>(() =>
   ),
 )
 
+const examenes = computed<ExamenCalendario[]>(() =>
+  store.seleccionadas.flatMap((m, i) =>
+    store.examenesDe(m.id).map(e => ({
+      id: e.id,
+      materiaId: m.id,
+      materia: m.name,
+      tipo: e.tipo,
+      fecha: e.fecha,
+      hue: HUES[i % HUES.length],
+    })),
+  ),
+)
+
+const leyenda = computed(() =>
+  store.seleccionadas.map((m, i) => ({ id: m.id, nombre: m.name, hue: HUES[i % HUES.length] })),
+)
+
 const dias = computed(() => {
-  if (vista.value === 'dia') return [{ fecha: fecha.value, weekday: weekdayDe(fecha.value) }]
   const lunes = inicioSemana(fecha.value)
   return Array.from({ length: 7 }, (_, i) => ({
     fecha: sumarDias(lunes, i),
@@ -79,15 +97,19 @@ const horaFin = computed(() =>
 const titulo = computed(() => {
   const formato = (d: Date, opciones: Intl.DateTimeFormatOptions) =>
     new Intl.DateTimeFormat('es-AR', opciones).format(d)
+  if (vista.value === 'mes') return formato(fecha.value, { month: 'long', year: 'numeric' })
   const primero = dias.value[0].fecha
   const ultimo = dias.value[dias.value.length - 1].fecha
-  if (vista.value === 'dia') return formato(primero, { day: 'numeric', month: 'long', year: 'numeric' })
   if (primero.getMonth() === ultimo.getMonth()) return formato(primero, { month: 'long', year: 'numeric' })
   return `${formato(primero, { month: 'short' })} - ${formato(ultimo, { month: 'short', year: 'numeric' })}`
 })
 
 function mover(sentido: -1 | 1) {
-  fecha.value = sumarDias(fecha.value, sentido * (vista.value === 'semana' ? 7 : 1))
+  if (vista.value === 'semana') {
+    fecha.value = sumarDias(fecha.value, sentido * 7)
+    return
+  }
+  fecha.value = new Date(fecha.value.getFullYear(), fecha.value.getMonth() + sentido, 1)
 }
 
 const conflictos = computed(() => detectarConflictos(eventos.value))
@@ -172,55 +194,67 @@ const superpuestoCon = computed(() => {
         <div class="segmentado" role="group" aria-label="Vista del calendario">
           <button
             type="button"
-            :aria-pressed="vista === 'dia'"
-            :class="{ activo: vista === 'dia' }"
-            @click="vista = 'dia'"
-          >
-            Día
-          </button>
-          <button
-            type="button"
             :aria-pressed="vista === 'semana'"
             :class="{ activo: vista === 'semana' }"
             @click="vista = 'semana'"
           >
             Semana
           </button>
+          <button
+            type="button"
+            :aria-pressed="vista === 'mes'"
+            :class="{ activo: vista === 'mes' }"
+            @click="vista = 'mes'"
+          >
+            Mes
+          </button>
         </div>
       </div>
 
-      <AvisoConflictos
-        v-if="mostrarAviso"
-        :conflictos="conflictos"
-        :notificaciones="soportaNotificaciones ? notificacionesActivas : null"
-        @descartar="firmaDescartada = firmaConflictos"
-        @alternar-notificaciones="alternarNotificaciones"
-      />
+      <template v-if="vista === 'semana'">
+        <AvisoConflictos
+          v-if="mostrarAviso"
+          :conflictos="conflictos"
+          :notificaciones="soportaNotificaciones ? notificacionesActivas : null"
+          @descartar="firmaDescartada = firmaConflictos"
+          @alternar-notificaciones="alternarNotificaciones"
+        />
 
-      <p v-if="cargando" class="estado">Cargando horarios...</p>
-      <p v-if="errores.length" class="estado estado-error">
-        No se pudieron cargar los horarios de: {{ errores.join(', ') }}
-      </p>
-      <p v-if="!cargando && !eventos.length && !errores.length" class="estado">
-        Tus materias no tienen horarios publicados.
-      </p>
+        <p v-if="cargando" class="estado">Cargando horarios...</p>
+        <p v-if="errores.length" class="estado estado-error">
+          No se pudieron cargar los horarios de: {{ errores.join(', ') }}
+        </p>
+        <p v-if="!cargando && !eventos.length && !errores.length" class="estado">
+          Tus materias no tienen horarios publicados.
+        </p>
 
-      <CalendarioGrilla
-        :dias="dias"
-        :eventos="eventos"
-        :conflicto-ids="conflictoIds"
-        :hora-inicio="horaInicio"
-        :hora-fin="horaFin"
-        :ahora="ahora"
-        @seleccionar="seleccionado = $event"
-      />
+        <CalendarioGrilla
+          :dias="dias"
+          :eventos="eventos"
+          :examenes="examenes"
+          :conflicto-ids="conflictoIds"
+          :hora-inicio="horaInicio"
+          :hora-fin="horaFin"
+          :ahora="ahora"
+          @seleccionar="seleccionado = $event"
+        />
 
-      <DetalleEvento
-        v-if="seleccionado"
-        :evento="seleccionado"
-        :superpuesto-con="superpuestoCon"
-        @cerrar="seleccionado = null"
-      />
+        <DetalleEvento
+          v-if="seleccionado"
+          :evento="seleccionado"
+          :superpuesto-con="superpuestoCon"
+          @cerrar="seleccionado = null"
+        />
+      </template>
+
+      <CalendarioMes v-else :fecha="fecha" :examenes="examenes" :ahora="ahora" />
+
+      <ul class="leyenda" aria-label="Materias">
+        <li v-for="l in leyenda" :key="l.id" :style="{ '--hue': l.hue }">
+          <span class="punto" aria-hidden="true" />
+          {{ l.nombre }}
+        </li>
+      </ul>
     </template>
   </section>
 </template>
@@ -263,8 +297,34 @@ const superpuestoCon = computed(() => {
 
 .navegacion {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem;
+}
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.leyenda li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.punto {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--hue) 55% 40%);
 }
 
 .titulo {

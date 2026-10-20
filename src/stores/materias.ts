@@ -48,6 +48,16 @@ export interface MateriaOverview extends Materia {
   prerequisites: Correlativa[]
 }
 
+export type TipoExamen = 'parcial' | 'final' | 'recuperatorio'
+
+export interface Examen {
+  id: number
+  materiaId: number
+  tipo: TipoExamen
+  // YYYY-MM-DD en hora local
+  fecha: string
+}
+
 interface Page<T> {
   items: T[]
   total: number
@@ -154,6 +164,30 @@ export const useMateriasStore = defineStore('materias', () => {
     estados.value = { ...estados.value, [id]: estado }
   }
 
+  // La API no publica fechas de parciales ni mesas: las carga el usuario.
+  const examenes = ref<Examen[]>([])
+  let siguienteExamenId = 1
+
+  function examenesDe(materiaId: number): Examen[] {
+    return examenes.value
+      .filter(e => e.materiaId === materiaId)
+      .sort((a, b) => a.fecha.localeCompare(b.fecha))
+  }
+
+  function agregarExamen(materiaId: number, tipo: TipoExamen, fecha: string): boolean {
+    if (!fecha) return false
+    const repetido = examenes.value.some(
+      e => e.materiaId === materiaId && e.tipo === tipo && e.fecha === fecha,
+    )
+    if (repetido) return false
+    examenes.value.push({ id: siguienteExamenId++, materiaId, tipo, fecha })
+    return true
+  }
+
+  function quitarExamen(id: number) {
+    examenes.value = examenes.value.filter(e => e.id !== id)
+  }
+
   return {
     disponibles,
     seleccionadas,
@@ -164,9 +198,13 @@ export const useMateriasStore = defineStore('materias', () => {
     overviews,
     overviewsCargando,
     overviewsError,
+    examenes,
     cargarDisponibles,
     cargarOverview,
     toggleMateria,
     setEstado,
+    examenesDe,
+    agregarExamen,
+    quitarExamen,
   }
 })

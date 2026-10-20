@@ -1,9 +1,31 @@
-import type { Comision } from '../stores/materias'
+import type { Comision, TipoExamen } from '../stores/materias'
+
+export const ETIQUETA_TIPO: Record<TipoExamen, string> = {
+  parcial: 'Parcial',
+  final: 'Final',
+  recuperatorio: 'Recuperatorio',
+}
+
+export const INICIAL_TIPO: Record<TipoExamen, string> = {
+  parcial: 'P',
+  final: 'F',
+  recuperatorio: 'R',
+}
+
+export interface ExamenCalendario {
+  id: number
+  materiaId: number
+  materia: string
+  tipo: TipoExamen
+  fecha: string
+  hue: number
+}
 
 export interface EventoCalendario {
   id: number
   materiaId: number
   materia: string
+  codigo: string | null
   weekday: number
   inicio: number
   fin: number
@@ -58,6 +80,30 @@ export function mismoDia(a: Date, b: Date): boolean {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   )
+}
+
+export function claveFecha(fecha: Date): string {
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+  const dia = String(fecha.getDate()).padStart(2, '0')
+  return `${fecha.getFullYear()}-${mes}-${dia}`
+}
+
+export function desdeClave(clave: string): Date {
+  const [y, m, d] = clave.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+// Semanas completas (lunes a domingo) que cubren el mes de la fecha dada.
+export function semanasDelMes(fecha: Date): Date[][] {
+  const ultimo = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0)
+  const semanas: Date[][] = []
+  let lunes = inicioSemana(new Date(fecha.getFullYear(), fecha.getMonth(), 1))
+  while (lunes <= ultimo) {
+    const inicio = lunes
+    semanas.push(Array.from({ length: 7 }, (_, i) => sumarDias(inicio, i)))
+    lunes = sumarDias(lunes, 7)
+  }
+  return semanas
 }
 
 // Reparte en columnas los eventos que se pisan dentro de un mismo día, como Google Calendar.
