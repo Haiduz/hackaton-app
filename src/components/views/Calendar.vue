@@ -13,7 +13,7 @@ import {
   type EventoCalendario,
   type ExamenCalendario,
 } from '../../utils/calendario'
-import { comisionesUnicas, nombreDia } from '../../utils/horarios'
+import { nombreDia, sesionesVigentes } from '../../utils/horarios'
 import AvisoConflictos from '../calendario/AvisoConflictos.vue'
 import CalendarioGrilla from '../calendario/CalendarioGrilla.vue'
 import CalendarioMes from '../calendario/CalendarioMes.vue'
@@ -46,7 +46,7 @@ onUnmounted(() => window.clearInterval(temporizador))
 
 const eventos = computed<EventoCalendario[]>(() =>
   store.seleccionadas.flatMap((m, i) =>
-    comisionesUnicas(store.overviews[m.id]?.sessions ?? [])
+    sesionesVigentes(store.overviews[m.id]?.sessions ?? [])
       .filter(c => c.start_time && c.end_time && c.weekday)
       .map(c => ({
         id: c.id,

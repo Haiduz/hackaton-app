@@ -28,7 +28,8 @@ onMounted(() => store.cargarOverview(props.materiaId))
     <ul v-else class="lista">
       <li v-for="c in comisiones" :key="c.id" class="horario">
         <span class="dia">{{ nombreDia(c.weekday) }}</span>
-        <span>{{ c.start_time }} - {{ c.end_time }}</span>
+        <span v-if="c.end_time">{{ c.start_time }} - {{ c.end_time }}</span>
+        <span v-else>{{ c.start_time }} (sin hora de fin publicada)</span>
         <code v-if="textoAula(c)">{{ textoAula(c) }}</code>
         <span v-if="c.mode && c.mode !== 'presencial'" class="modo">{{ c.mode }}</span>
         <span v-if="c.notes" class="notas">{{ c.notes }}</span>
