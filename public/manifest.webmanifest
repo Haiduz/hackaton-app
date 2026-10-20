@@ -1,6 +1,6 @@
 {
-  "name": "Hackaton",
-  "short_name": "Hackaton",
+  "name": "caso_base",
+  "short_name": "caso_base",
   "description": "Organizá tus materias, correlativas, horarios y sesiones de estudio.",
   "lang": "es",
   "start_url": "/",

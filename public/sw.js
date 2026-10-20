@@ -1,4 +1,4 @@
-const CACHE = 'hackaton-v1'
+const CACHE = 'caso_base-v1'
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon.svg']
 
 self.addEventListener('install', (event) => {

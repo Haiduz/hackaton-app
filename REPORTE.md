@@ -1,4 +1,4 @@
-# Reporte de lo realizado - Hackaton App
+# Reporte de lo realizado - caso_base
 
 Aplicación en Vue 3 + Vite + TypeScript + Pinia para organizar el cursado de la carrera: materias, árbol de correlativas, horarios, calendario, exámenes, cronómetro (Pomodoro) y estadísticas.
 
@@ -7,7 +7,7 @@ Este reporte reúne el trabajo de las ramas `v0/render-views-per-tab` (vistas, �
 ## 1. Estructura y navegación
 
 - El estado de la pestaña activa está en `App.vue` y se renderiza una vista por cada pestaña de la barra inferior (`BottomNavBar.vue`): Home, Materias, Árbol, Calendario, Estadísticas y Timer.
-- La sección "Perfil" pasó al header, a la misma altura del título "Hackaton App", y se renombró a **Materias** (`Subjects.vue`).
+- La sección "Perfil" pasó al header, a la misma altura del título "caso_base", y se renombró a **Materias** (`Subjects.vue`).
 - `App.vue` también conecta las vistas Timer, Stats y Records.
 
 ## 2. Integración de ramas

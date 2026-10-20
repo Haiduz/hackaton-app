@@ -31,7 +31,11 @@ provide("navegar", (tab: string) => {
 
 <template>
   <header class="app-header">
-    <h2 class="app-title">Hackaton App</h2>
+    <div class="app-brand">
+      <img src="/logo_cb.svg" alt="" class="app-logo" />
+      <h2 class="app-title">caso_base</h2>
+    </div>
+
     <button
       type="button"
       class="subjects-button"
@@ -60,6 +64,18 @@ provide("navegar", (tab: string) => {
   gap: 1rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
 }
 
 .app-title {
