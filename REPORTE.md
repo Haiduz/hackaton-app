@@ -30,6 +30,7 @@ Este reporte reúne el trabajo de las ramas `v0/render-views-per-tab` (vistas, �
 
 - Las materias se agrupan por año y cuatrimestre con desplegables (`Colapsable.vue`, `utils/agrupar.ts`).
 - Cada materia seleccionada se muestra en el Home como desplegable (`ColapsableMateria.vue`) con horarios y aula por comisión (`SeccionHorarios.vue`, `utils/horarios.ts`), URL del campus y sección de exámenes.
+- Cada materia del Home tiene su propio fueguito de racha (`RachaMateria.vue`), a la derecha del título y antes del badge de examen. Cuenta los días seguidos con estudio de esa materia (mismo cálculo `calcularRacha` que la racha global) y se vincula a las sesiones por el código del plan (`idEstudioDeCodigoPlan`). Es independiente de la racha global.
 - Mensaje de "todavía no elegiste materias" parametrizable con `EstadoVacio.vue`.
 - Una sección de año o cuatrimestre con todas sus materias aprobadas se muestra tachada.
 

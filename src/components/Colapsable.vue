@@ -39,6 +39,7 @@ const abierto = ref(false)
           </span>
           <span v-if="subtitulo" class="colapsable-sub">{{ subtitulo }}</span>
         </span>
+        <slot name="extra" />
         <span v-if="badge" class="colapsable-badge" :data-urgencia="badgeUrgencia">{{ badge }}</span>
         <span class="colapsable-flecha" aria-hidden="true" />
       </button>

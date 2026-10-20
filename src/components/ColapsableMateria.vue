@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useMateriasStore, type Materia } from '../stores/materias'
 import Colapsable from './Colapsable.vue'
+import RachaMateria from './RachaMateria.vue'
 import SeccionExamenes from './secciones/SeccionExamenes.vue'
 import SeccionHorarios from './secciones/SeccionHorarios.vue'
 import {
@@ -40,6 +41,9 @@ onMounted(() => store.cargarOverview(props.materia.id))
 
 <template>
   <Colapsable :titulo="materia.name" :subtitulo="materia.code ?? undefined" :badge="badgeExamen" :badge-urgencia="badgeUrgencia" variante="materia">
+    <template #extra>
+      <RachaMateria :materia="materia" />
+    </template>
     <slot>
       <!-- Cada sección tendrá su propio componente y su propia petición a la API -->
       <section v-if="campusUrl" class="seccion">
