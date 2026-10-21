@@ -1,15 +1,36 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { generarSesionesMock, MATERIAS_ESTUDIO } from '../data/sesionesMock'
+import { MATERIAS_ESTUDIO } from '../data/materiasEstudio'
 import { agruparPorDia, type MateriaEstudio, type Sesion } from '../utils/estudio'
 import { refPersistido, siguienteId as calcularSiguienteId } from '../utils/persistencia'
 
 export type DatosSesion = Omit<Sesion, 'id'>
 
-// Las sesiones se guardan en el navegador; los datos demo solo se generan la primera vez.
+// Materias que usaba el generador de datos demo de versiones anteriores.
+const MATERIAS_DEMO = new Set([312, 212, 311, 313, 223, 224, 221, 222])
+
+function esSesionDemo(s: Sesion): boolean {
+  if (!MATERIAS_DEMO.has(s.materiaId) || s.foco % 60 !== 0) return false
+  const minutosFoco = s.foco / 60
+  const duracion = s.fin - s.inicio
+  return s.modo === 'pomodoro'
+    ? duracion === Math.round((minutosFoco * 30) / 25)
+    : duracion === minutosFoco
+}
+
+// Versiones anteriores sembraban sesiones demo en el navegador. Solo se descartan si el
+// historial guardado es exactamente ese set intacto; si el usuario cargó algo propio, no se toca nada.
+function sinDatosDemo(sesiones: Sesion[]): Sesion[] {
+  const esSemillaIntacta =
+    sesiones.length >= 20 &&
+    sesiones.every((s, i) => s.id === i + 1 && esSesionDemo(s))
+  return esSemillaIntacta ? [] : sesiones
+}
+
 export const useEstudioStore = defineStore('estudio', () => {
   const materias: MateriaEstudio[] = MATERIAS_ESTUDIO
-  const sesiones = refPersistido<Sesion[]>('estudio.sesiones', generarSesionesMock)
+  const sesiones = refPersistido<Sesion[]>('estudio.sesiones', () => [])
+  sesiones.value = sinDatosDemo(sesiones.value)
   const resaltada = ref<number | null>(null)
   const edicionPendiente = ref<number | null>(null)
   let siguienteId = calcularSiguienteId(sesiones.value)
@@ -48,11 +69,6 @@ export const useEstudioStore = defineStore('estudio', () => {
     sesiones.value = []
   }
 
-  function restaurarDemo() {
-    sesiones.value = generarSesionesMock()
-    siguienteId = calcularSiguienteId(sesiones.value)
-  }
-
   return {
     materias,
     sesiones,
@@ -66,6 +82,5 @@ export const useEstudioStore = defineStore('estudio', () => {
     eliminar,
     pedirEdicion,
     vaciar,
-    restaurarDemo,
   }
 })

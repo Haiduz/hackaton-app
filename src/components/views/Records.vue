@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue'
-import { ArrowLeft, ListChecks, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-vue-next'
+import { ArrowLeft, ListChecks, Pencil, Plus, Trash2 } from 'lucide-vue-next'
 import { useEstudioStore, type DatosSesion } from '../../stores/estudio'
 import { capitalizar, clave, fechaLarga, hmm, horasMinutos, MODOS, reloj, sumarDias, type Sesion } from '../../utils/estudio'
 import EditorRegistro from '../estudio/EditorRegistro.vue'
@@ -112,9 +112,6 @@ function vaciar() {
         <button type="button" class="btn btn-primario" @click="nueva">
           <Plus :size="16" aria-hidden="true" /> Agregar sesión manual
         </button>
-        <button type="button" class="btn" @click="store.restaurarDemo()">
-          <RotateCcw :size="16" aria-hidden="true" /> Cargar datos de demo
-        </button>
       </div>
     </div>
 
@@ -176,7 +173,7 @@ function vaciar() {
     <Modal
       v-model:abierto="confirmarVaciar"
       titulo="¿Vaciar todos los registros?"
-      descripcion="Sirve para mostrar el estado vacío. Podés volver a cargar los datos de demo cuando quieras."
+      descripcion="Se borran todas las sesiones guardadas en este dispositivo. Esta acción no se puede deshacer."
     >
       <template #acciones>
         <button type="button" class="btn" @click="confirmarVaciar = false">Cancelar</button>

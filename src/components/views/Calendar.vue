@@ -494,4 +494,59 @@ const superpuestoCon = computed(() => {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+.boton,
+.icono,
+.segmentado button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 719px) {
+  .calendario {
+    gap: 0.6rem;
+  }
+
+  .barra {
+    gap: 0.5rem;
+  }
+
+  .navegacion {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .titulo {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Áreas táctiles de al menos 40px. */
+  .icono {
+    width: 40px;
+    height: 40px;
+  }
+
+  .boton,
+  .segmentado button {
+    min-height: 40px;
+    padding: 0.4rem 1rem;
+  }
+
+  .segmentado {
+    flex: 1 1 100%;
+  }
+
+  .segmentado button {
+    flex: 1;
+  }
+
+  .leyenda {
+    gap: 0.35rem 0.6rem;
+  }
+}
 </style>

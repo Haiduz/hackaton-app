@@ -165,5 +165,47 @@ body:has(.arbol) {
   height: calc(100svh - 230px);
   min-height: 440px;
   border-block: 1px solid var(--border);
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 719px) {
+  .arbol {
+    gap: 0.5rem;
+  }
+
+  .barra {
+    gap: 0.5rem 0.75rem;
+    padding: 0 0.75rem;
+  }
+
+  /* La leyenda pasa a una sola fila deslizable para no empujar el lienzo hacia abajo. */
+  .leyenda {
+    flex-basis: 100%;
+    flex-wrap: nowrap;
+    margin: 0 -0.75rem;
+    padding: 2px 0.75rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .leyenda::-webkit-scrollbar {
+    display: none;
+  }
+
+  .leyenda li {
+    flex: none;
+    padding: 6px 12px;
+  }
+
+  .estado {
+    padding: 0 0.75rem;
+  }
+
+  .lienzo {
+    height: calc(100dvh - 200px);
+    min-height: 380px;
+  }
 }
 </style>

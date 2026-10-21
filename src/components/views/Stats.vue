@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, reactive, ref } from 'vue'
-import { ChartNoAxesColumnIncreasing, ListChecks, RotateCcw, Timer } from 'lucide-vue-next'
+import { ChartNoAxesColumnIncreasing, ListChecks, Timer } from 'lucide-vue-next'
 import { useEstudioStore } from '../../stores/estudio'
 import {
   capitalizar, clave, desdeClave, diasEnMes, fechaCorta, fechaLarga, horasMinutos, inicioSemana, MESES, MESES_CORTOS,
@@ -201,9 +201,6 @@ const detalle = computed(() => {
       <div class="acciones">
         <button type="button" class="btn btn-primario" @click="navegar('timer')">
           <Timer :size="16" aria-hidden="true" /> Empezar a estudiar
-        </button>
-        <button type="button" class="btn" @click="store.restaurarDemo()">
-          <RotateCcw :size="16" aria-hidden="true" /> Cargar datos de demo
         </button>
       </div>
     </div>

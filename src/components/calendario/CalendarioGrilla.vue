@@ -208,9 +208,23 @@ function etiqueta(e: EventoCalendario): string {
   max-height: calc(100svh - 300px);
   min-height: 360px;
   overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--bg);
+}
+
+@media (max-width: 719px) {
+  .grilla {
+    max-height: calc(100dvh - 280px);
+    scroll-padding-left: 3.25rem;
+  }
+
+  .evento {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 .interna.multiple {
